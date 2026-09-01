@@ -1,13 +1,6 @@
 ---
 name: drawio-diagram
-description: >
-  draw.io Desktop CLI を使い、編集可能な `.drawio` 正本と埋め込み用 SVG を作成・編集するスキル。
-  **Use this skill whenever the user mentions** draw.io / drawio / diagrams.net / `.drawio` /
-  draw.io で構成図・アーキテクチャ図・スイムレーン・ネットワーク図・複雑な接続図を作りたい、
-  または既存の draw.io 図をスライド・HTML ページへ埋め込みたい、と言ったとき。
-  スライド（slides/）と公開 HTML ページ（htmls/）へ載せる図（構成図・アーキテクチャ図に加え、
-  フロー・分岐・手順・シーケンス・時系列も）は明示依頼がなくても原則すべて本スキルで作る。
-  Mermaid は原則使わない。
+description: "draw.io Desktop CLI で編集可能な .drawio 正本と埋め込み用 SVG を作成・編集するスキル。スライドや HTML に載せる構成図・フロー・シーケンス図は原則すべて本スキルで作る（Mermaid は原則使わない）。Use when draw.io / .drawio で図を作りたい・埋め込みたいとき。"
 ---
 
 # drawio-diagram Skill（編集可能な図をスライドへ埋め込む）

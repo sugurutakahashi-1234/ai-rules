@@ -1,13 +1,6 @@
 ---
 name: image-gen
-description: >
-  gpt-image-2（Codex の組み込み image_gen・ChatGPT サブスクルート）で画像を生成し、
-  生成した画像の保存・公開はリポジトリ側の規約に従う。
-  スライド挿絵・HTML ページ挿絵・CG・アイキャッチなど用途を問わない「画像生成の共通エンジン」で、
-  スライドへの差し込みは姉妹スキル slide-infographic が、HTML ページへの差し込みは
-  HTML・スライド・インフォグラフィック系の媒体スキルから呼び出される。呼び出し規約・ハマりどころの正本はこのファイル。
-  **Use this skill whenever the user mentions** 画像を作って / CG を作って / images に画像を追加したい /
-  gpt-image で生成したい / アイキャッチ・挿絵・イラストがほしい、と言ったとき。
+description: "gpt-image-2（Codex 組み込み image_gen・ChatGPT サブスクルート）で画像を生成する共通エンジン。呼び出し規約・並列一括生成・ハマりどころの正本で、他の媒体スキルからも呼ばれる。Use when 画像・CG・挿絵・アイキャッチを作りたい、gpt-image で生成したいとき。"
 ---
 
 # image-gen Skill（gpt-image-2 で画像を生成して images に置く）

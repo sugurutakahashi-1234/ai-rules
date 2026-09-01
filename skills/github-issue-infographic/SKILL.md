@@ -1,14 +1,6 @@
 ---
 name: github-issue-infographic
-description: >
-  GitHub issue の Markdown 本文を「ほぼそのまま」に保ったまま、各章（## 見出し）の冒頭に
-  手書き風イラストのインフォグラフィック画像を差し込むスキル。md-to-visual-html の「issue 版」。
-  画像は Codex 経由の組み込み image_gen（gpt-image-2）で「イラスト＋正しい日本語テキスト」を1枚に生成し、
-  リポジトリの `docs/assets/issue-N/` にコミットして raw URL で issue 本文から参照する。
-  GitHub の Markdown は HTML/CSS が効かないため、図解は必ず画像（PNG/JPEG）として外部生成する。
-  **Use this skill whenever the user mentions** GitHub issue にインフォグラフィックを差し込みたい /
-  issue に図解・イラストを入れたい / issue を見やすくしたい / issue の各章に1枚絵を足したい /
-  md-to-visual-html みたいなことを issue でやりたい / issue#N に画像を入れて本文は変えない、と言ったとき。
+description: "GitHub issue の本文を変えずに、各章冒頭へ手書き風インフォグラフィック画像（gpt-image-2 生成）を差し込み、リポジトリにコミットして raw URL で参照するスキル。Use when issue にインフォグラフィック・図解・イラストを入れたい、issue を見やすくしたいとき。"
 ---
 
 # github-issue-infographic Skill（GitHub issue にインフォグラフィックを差し込む）

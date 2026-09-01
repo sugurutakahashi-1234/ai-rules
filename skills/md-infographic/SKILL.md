@@ -1,16 +1,6 @@
 ---
 name: md-infographic
-description: >
-  リポジトリ内のローカル Markdown ファイルの本文を「ほぼそのまま」に保ったまま、各章（## 見出し）の冒頭に
-  手書き風イラストのインフォグラフィック画像を差し込むスキル。github-issue-infographic の「ローカルMarkdown版」。
-  画像は Codex 経由の組み込み image_gen（gpt-image-2）で「イラスト＋正しい日本語テキスト」を1枚に生成し、
-  Markdown と同じ docs ディレクトリの `assets/資料スラッグ/` に置いて相対パスで参照する。
-  Markdown を HTML に変換するのではなく、Markdown のまま見やすくするのがポイント
-  （HTML 化したい場合は md-to-visual-html、GitHub issue に入れたい場合は github-issue-infographic を使う）。
-  **Use this skill whenever the user mentions** Markdown資料にインフォグラフィックを入れたい /
-  この md の各章に図解・イラストを差し込みたい / 資料を Markdown のまま見やすくしたい /
-  github-issue-infographic みたいなことをローカルの md でやりたい / ブリーフや提案書の各章に1枚絵を足したい /
-  「このMarkdownに手書き風の画像を入れて」と言ったとき。
+description: "ローカル Markdown の各章冒頭に手書き風インフォグラフィック画像（gpt-image-2 生成）を差し込むスキル。本文は変えない。Use when Markdown 資料にインフォグラフィック・図解・イラストを入れたい、md のまま見やすくしたい、章ごとに 1 枚絵を足したいとき。issue 版は github-issue-infographic。"
 ---
 
 # md-infographic Skill（ローカル Markdown にインフォグラフィックを差し込む）
