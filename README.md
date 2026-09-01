@@ -82,6 +82,12 @@ bunx lefthook install
 
 複数リポジトリへの一斉配布は zenshin-cto の multi-repo を使う。
 
+## 消費側の既知の落とし穴
+
+- **フォーマッタと取得物の衝突**: oxfmt / prettier 等が `.rulesync/`（`.curated/` 含む）や生成物（CLAUDE.md / AGENTS.md / .claude/ / .agents/）を整形すると、`rulesync.lock` の sha256 検証と `generate --check` が崩れる。**フォーマッタの ignore に必ず両方を入れる**
+- **同梱スクリプトの実行ビット**: rulesync は生成時に 755 を保持しない（[dyoshikawa/rulesync#2866](https://github.com/dyoshikawa/rulesync/issues/2866)）。スキル本文では `bash scripts/foo.sh` と明示呼び出しで書く
+- **増分 generate の delete 取りこぼし**: `delete: true` でも、source 内の一部ファイル削除だけの増分実行では残骸が残ることがある（[dyoshikawa/rulesync#2867](https://github.com/dyoshikawa/rulesync/issues/2867)）。スキルからファイルを削除したときは `sync-agents` を手で一度回して生成物を確認する
+
 ## バージョニング
 
 - 消費側は `@vX.Y.Z` のタグ参照で固定し、`rulesync.lock` をコミットする（取得内容は commit SHA と sha256 で再現される）

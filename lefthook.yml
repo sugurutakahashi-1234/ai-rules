@@ -1,0 +1,6 @@
+# コミットメッセージ検証。このリポジトリは規約（rules/language-and-commits.md）の
+# 正本なので、自分自身にも同じ検証を適用する（設定はこのリポの templates/ が正本）。
+commit-msg:
+  jobs:
+    - name: commitlint
+      run: bunx commitlint --edit {1}

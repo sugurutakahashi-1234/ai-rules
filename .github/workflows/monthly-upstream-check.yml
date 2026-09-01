@@ -1,0 +1,37 @@
+name: monthly-upstream-check
+
+# vendored している外部由来スキルの上流に新しい変更が出ていないか、
+# 毎月 1 日に確認タスクを issue として自動起票する。
+# 自リポへの起票なので標準の GITHUB_TOKEN だけで完結する（secret 不要）。
+
+on:
+  schedule:
+    - cron: "0 22 1 * *" # 毎月 1 日 07:00 JST
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+
+jobs:
+  create-issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 上流確認 issue を起票
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "${{ github.repository }}" \
+            --title "外部由来スキルの上流 revision 確認（$(date +%Y-%m)）" \
+            --body "$(cat <<'EOF'
+          vendored している外部由来スキルの上流に新しい変更が出ていないか確認する。
+
+          - [ ] 各スキルの frontmatter の source / revision と上流 HEAD を比較する
+            - addyosmani/web-quality-skills（accessibility / core-web-vitals / web-quality-audit）
+            - coreyhaines31/marketingskills（seo-audit / ai-seo / schema / cro）
+            - anthropics/skills（frontend-design）
+            - vercel-labs/web-interface-guidelines（web-design-guidelines）
+          - [ ] 取り込む価値のある変更があれば更新して新タグを切り、消費側リポジトリの参照を更新する（zenshin 系は zenshin-cto の bump-shared で一斉更新）
+          - [ ] ローカル改変と衝突する場合は差分を確認して統合する
+          EOF
+          )"
