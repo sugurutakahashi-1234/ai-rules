@@ -57,7 +57,6 @@ frontmatter の `globs` は「どのファイルを触るときに適用する�
 | `github-issue-infographic` | GitHub issue へのインフォグラフィック差し込み | **前提: `image-gen` も併せて導入** |
 | `md-to-visual-html` 系は各リポ側 | — | HTML 設計の正本は会社層・リポ層にある |
 | `md-to-pdf` | Markdown→PDF の 2 段変換手順 | |
-| `flyer-designer` | A4 チラシの情報設計と印刷前提の検証 | |
 | `drawio-diagram` | draw.io 図の作成・書き出し・自己チェック | agents/references/scripts 同梱 |
 
 **外部由来（vendored）**: `accessibility` / `core-web-vitals` / `web-quality-audit`（addyosmani/web-quality-skills, MIT）、`seo-audit` / `ai-seo` / `schema` / `cro`（coreyhaines31/marketingskills, MIT）、`frontend-design`（anthropics/skills）、`web-design-guidelines`（vercel-labs）。frontmatter の source / revision が追従の基準。LICENSE を同梱し、本文冒頭に出典を明記。
