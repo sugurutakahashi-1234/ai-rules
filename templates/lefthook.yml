@@ -1,6 +1,21 @@
-# コミットメッセージ検証。導入手順はこのリポジトリの README を参照。
-# 前提: bun + devDependencies に @commitlint/cli と @commitlint/config-conventional
+# lefthook 初期テンプレート（lefthook 未導入リポジトリ向け）。
+# 既に lefthook.yml があるリポジトリでは上書きせず、下の 2 ブロックをマージする。
+# 前提: bun + devDependencies に lefthook / @commitlint/cli / @commitlint/config-conventional
+
+# コミットメッセージ検証（正本: sugurutakahashi-1234/ai-rules の rules/language-and-commits.md）
 commit-msg:
-  commands:
-    commitlint:
+  jobs:
+    - name: commitlint
       run: bunx commitlint --edit {1}
+
+# エージェント指示の自動 sync。.rulesync/ や rulesync.jsonc を変更してコミットすると
+# 生成物（CLAUDE.md / AGENTS.md / .claude/ / .agents/）を再生成してコミットに含める。
+# generate はコミット済みの取得物 .curated/ を使うためオフラインで数秒。
+pre-commit:
+  jobs:
+    - name: rulesync-generate
+      glob:
+        - ".rulesync/**"
+        - "rulesync.jsonc"
+        - "rulesync.lock"
+      run: rulesync generate && git add CLAUDE.md AGENTS.md .claude .agents .rulesync rulesync.lock

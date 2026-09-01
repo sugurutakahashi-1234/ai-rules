@@ -44,12 +44,16 @@ frontmatter の `globs` は「どのファイルを触るときに適用する�
 | `language-and-commits` | なし（常時） | 日本語の使い分けとコミット規約（type 英語・subject 日本語） |
 | `code-conventions` | `**/*` | コーディング規約（コメントは WHY のみ、UTC/JST 等） |
 
+## sync のタイミング
+
+rulesync は**コマンドを打ったときだけ**動く（自動では走らない）。sync し忘れを構造的に無くすため、消費側では lefthook の pre-commit フックで自動 sync する（`templates/lefthook.yml` の `rulesync-generate` ブロック）。`.rulesync/` や `rulesync.jsonc` をステージしてコミットすると、生成物が再生成されて同じコミットに含まれる。generate はコミット済みの取得物 `.curated/` を読むだけなのでオフラインで数秒。CI の drift チェックは保険として残す。
+
 ## templates/ — rulesync の配布対象外のもの
 
 git フック等の設定ファイルは rulesync では配布できない（rulesync が扱うのはエージェント指示のみ）。各リポジトリへ実ファイルをコピーして使う。
 
-- `templates/lefthook.yml` — commit-msg で commitlint を実行
-- `templates/commitlint.config.mjs` — `language-and-commits` ルールと対をなす commitlint 設定
+- `templates/lefthook.yml` — commit-msg で commitlint、pre-commit で rulesync 自動 sync。**既存の lefthook.yml があるリポジトリでは上書きせずマージする**
+- `templates/commitlint.config.mjs` — `language-and-commits` ルールと対をなす commitlint 設定（commitlint 未導入リポジトリ向け。既存設定があるリポジトリはそちらを正とする）
 
 導入（消費側リポジトリで）:
 
