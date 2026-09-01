@@ -1,0 +1,4 @@
+interface:
+  display_name: "Draw.io Diagram"
+  short_description: "Create editable draw.io diagrams for slides"
+  default_prompt: "Use $drawio-diagram to create an editable draw.io diagram and export a slide-ready SVG."

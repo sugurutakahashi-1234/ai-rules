@@ -43,6 +43,24 @@ frontmatter の `globs` は「どのファイルを触るときに適用する�
 | `git-safety` | なし（常時） | 破壊的な git 操作の禁止 |
 | `language-and-commits` | なし（常時） | 日本語の使い分けとコミット規約（type 英語・subject 日本語） |
 | `code-conventions` | `**/*` | コーディング規約（コメントは WHY のみ、UTC/JST 等） |
+| `skill-layering` | スキル関連 | スキル・ルールを新設するときの置き場所判断（知見の集約先） |
+
+## スキル一覧
+
+**自作・汎用**（会社依存を除去して昇格したもの）:
+
+| スキル | 内容 | 備考 |
+|---|---|---|
+| `design-compare` | デザイン案を 1 枚の比較モックにして選んでもらう | |
+| `image-gen` | Codex 経由 gpt-image-2 の呼び出し規約・並列一括生成 | `scripts/parallel-imggen.sh` 同梱 |
+| `md-infographic` | 章扉インフォグラフィックのスタイル定型 | **前提: `image-gen` も併せて導入** |
+| `github-issue-infographic` | GitHub issue へのインフォグラフィック差し込み | **前提: `image-gen` も併せて導入** |
+| `md-to-visual-html` 系は各リポ側 | — | HTML 設計の正本は会社層・リポ層にある |
+| `md-to-pdf` | Markdown→PDF の 2 段変換手順 | |
+| `flyer-designer` | A4 チラシの情報設計と印刷前提の検証 | |
+| `drawio-diagram` | draw.io 図の作成・書き出し・自己チェック | agents/references/scripts 同梱 |
+
+**外部由来（vendored）**: `accessibility` / `core-web-vitals` / `web-quality-audit`（addyosmani/web-quality-skills, MIT）、`seo-audit` / `ai-seo` / `schema` / `cro`（coreyhaines31/marketingskills, MIT）、`frontend-design`（anthropics/skills）、`web-design-guidelines`（vercel-labs）。frontmatter の source / revision が追従の基準。LICENSE を同梱し、本文冒頭に出典を明記。
 
 ## sync のタイミング
 
