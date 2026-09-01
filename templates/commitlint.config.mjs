@@ -3,22 +3,24 @@
 export default {
   extends: ["@commitlint/config-conventional"],
   rules: {
+    // 全社標準の語彙（Conventional Commits 準拠 + improve）。
+    // release-please がこの語彙に依存するリポジトリがあるため勝手に増減しない
     "type-enum": [
       2,
       "always",
       [
         "feat",
         "fix",
-        "add",
-        "remove",
-        "rename",
-        "tweak",
-        "tune",
-        "refactor",
         "docs",
+        "style",
+        "refactor",
+        "perf",
+        "test",
+        "build",
         "ci",
         "chore",
-        "test",
+        "revert",
+        "improve",
       ],
     ],
     "subject-case": [0],

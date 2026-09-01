@@ -9,9 +9,9 @@ description: "言語の使い分けとコミットメッセージ規約"
 - 議論・コードコメント・ドキュメントは**日本語**で書く。
 - コミットメッセージは **type が英語小文字・subject と body は日本語**。
   - 形式: `type(scope): 日本語の subject`（scope は任意）
-  - 許容 type は**そのリポジトリの commitlint 設定（`commitlint.config.*` の `type-enum`）に従う**。release-please 等のリリース自動化が type に依存するリポジトリがあるため、リポジトリ間で語彙を無理に揃えない
-  - commitlint 未導入のリポジトリでは `feat` / `fix` / `add` / `remove` / `rename` / `tweak` / `tune` / `refactor` / `docs` / `ci` / `chore` / `test` を使う（sugurutakahashi-1234/ai-rules の `templates/commitlint.config.mjs` の語彙）
-  - 例: `tweak(ci): bun のバージョン指定を latest 追随へ統一`
+  - 許容 type は標準語彙 `feat` / `fix` / `docs` / `style` / `refactor` / `perf` / `test` / `build` / `ci` / `chore` / `revert` / `improve`（Conventional Commits 準拠 + improve。sugurutakahashi-1234/ai-rules の `templates/commitlint.config.mjs` が正）。release-please 等のリリース自動化がこの語彙に依存するため勝手に増減しない
+  - そのリポジトリの commitlint 設定（`commitlint.config.*` の `type-enum`）が標準と異なる場合はリポジトリ側の設定に従う
+  - 例: `improve(ci): bun のバージョン指定を latest 追随へ統一`
 
 ## commitlint の前提
 
