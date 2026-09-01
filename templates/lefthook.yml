@@ -1,0 +1,6 @@
+# コミットメッセージ検証。導入手順はこのリポジトリの README を参照。
+# 前提: bun + devDependencies に @commitlint/cli と @commitlint/config-conventional
+commit-msg:
+  commands:
+    commitlint:
+      run: bunx commitlint --edit {1}

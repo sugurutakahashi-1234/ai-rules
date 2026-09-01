@@ -1,0 +1,68 @@
+# ai-rules
+
+個人（sugurutakahashi-1234）の **汎用 AI コーディングエージェント向けルール・スキルの正本**。
+[rulesync](https://github.com/dyoshikawa/rulesync) の宣言的ソースとして、業務・個人を問わず各リポジトリから取り込む。
+
+会社・案件固有のルールはここには置かない。各社のルールリポジトリ（例: `ZENSHIN-Inc/zenshin-ai-rules`）に置き、消費側の `rulesync.jsonc` で両方を `sources` に並べる。
+
+## これはメニューであって、強制ではない
+
+このリポジトリは「全リポジトリが従うべき規格」ではなく、**各リポジトリが必要なものだけ選んで取り込む品揃え**。選ぶのは**消費側**。
+
+## 使い方
+
+各リポジトリの `rulesync.jsonc` に `sources` を書く。参照は必ずタグで固定する。
+
+```jsonc
+{
+  "targets": ["claudecode", "codexcli"],
+  "features": ["rules", "skills"],
+  "sources": [
+    {
+      "source": "sugurutakahashi-1234/ai-rules@v1.0.0",
+      "rules": ["language-and-commits", "git-safety", "code-conventions"]
+    }
+  ]
+}
+```
+
+`rules` だけを書けば skills は取得されない。**`"skills": []` と書いてはいけない**（「skills を選択したが 0 件一致」と解釈されて install が失敗する）。
+逆に `rules` と `skills` を**両方省略すると全 skills が取得される**（後方互換仕様）。どちらの罠も踏まないよう `rules` は必ず明示する。
+
+## ルールを書くときの注意（globs の使い分け）
+
+frontmatter の `globs` は「どのファイルを触るときに適用するか」。Claude Code 向け生成物では `paths` になり、**`globs` 付きルールは該当ファイルを読み書きするまで読み込まれない**。
+
+- **常時効かせたいルール**（git 操作の禁止事項、言語・コミット規約など）→ `globs` を**書かない**（セッション開始時に必ず読まれる）
+- **ファイル作業時だけ効けばよいルール**（コーディング規約など）→ `globs: ["**/*"]` などを書く（コンテキストの節約になる）
+
+## ルール一覧
+
+| ルール | globs | 内容 |
+|---|---|---|
+| `git-safety` | なし（常時） | 破壊的な git 操作の禁止 |
+| `language-and-commits` | なし（常時） | 日本語の使い分けとコミット規約（type 英語・subject 日本語） |
+| `code-conventions` | `**/*` | コーディング規約（コメントは WHY のみ、UTC/JST 等） |
+
+## templates/ — rulesync の配布対象外のもの
+
+git フック等の設定ファイルは rulesync では配布できない（rulesync が扱うのはエージェント指示のみ）。各リポジトリへ実ファイルをコピーして使う。
+
+- `templates/lefthook.yml` — commit-msg で commitlint を実行
+- `templates/commitlint.config.mjs` — `language-and-commits` ルールと対をなす commitlint 設定
+
+導入（消費側リポジトリで）:
+
+```bash
+bun add -d lefthook @commitlint/cli @commitlint/config-conventional
+cp <このリポ>/templates/lefthook.yml <このリポ>/templates/commitlint.config.mjs .
+bunx lefthook install
+```
+
+複数リポジトリへの一斉配布は zenshin-cto の multi-repo を使う。
+
+## バージョニング
+
+- 消費側は `@vX.Y.Z` のタグ参照で固定し、`rulesync.lock` をコミットする（取得内容は commit SHA と sha256 で再現される）
+- ルールを変更したら新しいタグを切る。既存タグは動かさない
+- 消費側の取り込みは `rulesync.jsonc` のタグを上げて `rulesync install` → 生成物と lock をコミット
