@@ -3,7 +3,7 @@
 個人（sugurutakahashi-1234）の **汎用 AI コーディングエージェント向けルール・スキルの正本**。
 [rulesync](https://github.com/dyoshikawa/rulesync) の宣言的ソースとして、業務・個人を問わず各リポジトリから取り込む。
 
-会社・案件固有のルールはここには置かない。各社のルールリポジトリ（例: `ZENSHIN-Inc/zenshin-ai-rules`）に置き、消費側の `rulesync.jsonc` で両方を `sources` に並べる。
+会社・案件固有のルールはここには置かない。所属組織ごとのルールリポジトリに置き、消費側の `rulesync.jsonc` で両方を `sources` に並べる。
 
 ## これはメニューであって、強制ではない
 
@@ -80,7 +80,7 @@ cp <このリポ>/templates/lefthook.yml <このリポ>/templates/commitlint.con
 bunx lefthook install
 ```
 
-複数リポジトリへの一斉配布は zenshin-cto の multi-repo を使う。
+複数リポジトリへの一斉配布は、組織側で用意した multi-repo 運用の仕組みに任せる。
 
 ## 消費側の既知の落とし穴
 
