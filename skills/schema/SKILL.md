@@ -2,6 +2,7 @@
 name: schema
 description: When the user wants to add, fix, or optimize schema markup and structured data on their site. Also use when the user mentions "schema markup," "structured data," "JSON-LD," "rich snippets," "schema.org," "FAQ schema," "product schema," "review schema," "breadcrumb schema," "Google rich results," "knowledge panel," "star ratings in search," or "add structured data." Use this whenever someone wants their pages to show enhanced results in Google. For broader SEO issues, see seo-audit. For AI search optimization, see ai-seo.
 metadata:
+  local_reviewed: 2026-09-08
   version: 2.0.0
   source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/schema
   revision: 7868cb9251fad80a73d26e488a5ad5f6c4a9f335
@@ -59,51 +60,19 @@ Before implementing schema, understand:
 
 ---
 
-## Common Schema Types
+## 型とプロパティの選定
 
-| Type                | Use For                                                    | Required Properties                    |
-| ------------------- | ---------------------------------------------------------- | -------------------------------------- |
-| Organization        | Company homepage/about                                     | name, url                              |
-| WebSite             | Homepage                                                   | name, url                              |
-| Article             | Blog posts, news                                           | headline, image, datePublished, author |
-| Product             | Product pages                                              | name, image, offers                    |
-| SoftwareApplication | SaaS/app pages                                             | name, offers                           |
-| FAQPage             | Documented non-Google consumer; Google rich result retired | mainEntity (Q&A array)                 |
-| HowTo               | Documented consumer; no Google rich result                 | name, step                             |
-| BreadcrumbList      | Any page with breadcrumbs                                  | itemListElement                        |
-| LocalBusiness       | Local business pages                                       | name, address                          |
-| Event               | Events, webinars                                           | name, startDate, location              |
+schema.orgの語彙、Googleの表示機能ごとの必須条件、推奨項目を区別する。全型に共通する固定の必須プロパティ表は使わず、対象機能の公式ページで必須/推奨を確認する。
 
-**For complete JSON-LD examples**: See [references/schema-examples.md](references/schema-examples.md)
+- Organization / WebSite: 実在する組織・サイトの名称、URL、ロゴ等を一貫させる。
+- Article / BlogPosting: GoogleのArticleには必須プロパティがない。該当する著者、見出し、画像、公開日・実質更新日を正確に提供する。推奨欠落を必須エラーにしない。
+- Product: product snippetsとmerchant listingsで条件が異なる。サービスページを星表示のために商品扱いせず、価格・評価を捏造しない。
+- BreadcrumbList / LocalBusiness / Event / SoftwareApplication: 実際のページ用途、表示要件、利用可能な事実を確認して選ぶ。
+- FAQPage / HowTo: Googleのリッチリザルト施策として新設しない。schema.orgとしての意味または別の利用者が明確な場合に限る。既存の正確なデータは表示機能の終了だけを理由に削除しない。
 
----
+[Article公式仕様](https://developers.google.com/search/docs/appearance/structured-data/article)、[Productの機能区分](https://developers.google.com/search/docs/appearance/structured-data/product)、[Googleの対応一覧](https://developers.google.com/search/docs/appearance/structured-data/search-gallery)を確認する。
 
-## Quick Reference
-
-### Organization (Company Page)
-
-Required: name, url
-Recommended: logo, sameAs (social profiles), contactPoint
-
-### Article/BlogPosting
-
-Required: headline, image, datePublished, author
-Recommended: dateModified, publisher, description
-
-### Product
-
-Required: name, image, offers (price + availability)
-Recommended: sku, brand, aggregateRating, review
-
-### FAQPage
-
-Required: mainEntity (array of Question/Answer pairs)
-
-Google retired the FAQ rich result in May 2026. Do not add `FAQPage` as a Google rich-result tactic. It may still describe genuine visible FAQ content for schema.org or another documented consumer.
-
-### BreadcrumbList
-
-Required: itemListElement (array with position, name, item)
+[JSON-LD例](references/schema-examples.md) は実装の参考で、現在の必須項目の正本ではない。`@id` とURLは正規URLにそろえ、本文と同じ実体を参照する。JSONを安全にシリアライズし、本文由来の `</script>` 等でscript要素を終了させない。
 
 ---
 
@@ -181,7 +150,7 @@ The Rich Results Test checks Google-supported appearances; Schema.org Validator 
 ### Testing Checklist
 
 - [ ] Validates in Rich Results Test
-- [ ] No errors or warnings
+- [ ] 必須エラーを解消し、推奨項目の警告は事実の有無と対応理由を記録する
 - [ ] Matches page content
 - [ ] All required properties included
 

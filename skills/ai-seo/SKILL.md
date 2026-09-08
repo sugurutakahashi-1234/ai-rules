@@ -2,6 +2,7 @@
 name: ai-seo
 description: "When the user wants to optimize content for AI search engines, get cited by LLMs, or appear in AI-generated answers. Also use when the user mentions 'AI SEO,' 'AEO,' 'GEO,' 'LLMO,' 'answer engine optimization,' 'generative engine optimization,' 'LLM optimization,' 'AI Overviews,' 'optimize for ChatGPT,' 'optimize for Perplexity,' 'AI citations,' 'AI visibility,' 'zero-click search,' 'how do I show up in AI answers,' 'LLM mentions,' 'optimize for Claude/Gemini,' 'llms.txt,' 'OKF,' 'Open Knowledge Format,' 'knowledge bundle,' or 'agent-readable site.' Use this whenever someone wants their content to be cited or surfaced by AI assistants and AI search engines. For traditional technical and on-page SEO audits, see seo-audit. For structured data implementation, see schema."
 metadata:
+  local_reviewed: 2026-09-08
   version: 2.2.0
   source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/ai-seo
   revision: 7868cb9251fad80a73d26e488a5ad5f6c4a9f335
@@ -433,3 +434,9 @@ For tactical guidance on SaaS product pages, blog content, comparison/alternativ
 - **seo-audit**: For traditional technical and on-page SEO audits
 - **schema**: For implementing accurate structured data for documented consumers and rich-result eligibility
 - **cro**: For ensuring AI-discoverable pages still guide human readers toward consultation
+
+## 生成AI検索の参加状態と比較条件
+
+[Googleの公式ガイド](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide)に従い、index・スニペット表示資格に加えてSearch Consoleの生成AI検索への参加設定を確認する。画面や権限がなければ「未確認」と記録し、有効と推測しない。設定変更はユーザーの公開方針に従う。
+
+計測はプロパティ、期間、検索面、国・端末・フィルタを記録する。専用レポートと全体レポートの重複指標を足し合わせない。設定やレポートの提供範囲は変わるため、画面で得た事実と公式仕様を分ける。

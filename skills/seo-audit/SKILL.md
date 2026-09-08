@@ -2,6 +2,7 @@
 name: seo-audit
 description: When the user wants to audit, review, or diagnose SEO issues on the site. Also use when the user mentions "SEO audit," "technical SEO," "why am I not ranking," "SEO issues," "on-page SEO," "meta tags review," "SEO health check," "my traffic dropped," "lost rankings," "not showing up in Google," "page speed," "core web vitals," "crawl errors," or "indexing issues." Use this even for vague requests such as "my SEO is bad"; start with an audit. For adding structured data, see schema. For AI search optimization, see ai-seo.
 metadata:
+  local_reviewed: 2026-09-08
   version: 2.0.0
   source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/seo-audit
   revision: 7868cb9251fad80a73d26e488a5ad5f6c4a9f335
@@ -39,19 +40,11 @@ Before auditing, understand:
 
 ## Audit Framework
 
-### Schema Markup Detection Limitation
+### 構造化データの検出と証拠
 
-**`web_fetch` and `curl` cannot reliably detect structured data / schema markup.**
+HTMLをテキスト化する取得ツールは script を落とすことがある。まずHTTP応答の生HTMLとヘッダーを保存し、JSON-LDをパースする。curl はSSG/SSRが出力したJSON-LDを確認できるが、JavaScriptは実行しない。生HTMLにない場合はrendered DOM、必要に応じてRich Results Testで確認し、取得失敗を「構造化データなし」と扱わない。
 
-Many CMS plugins (AIOSEO, Yoast, RankMath) inject JSON-LD via client-side JavaScript — it won't appear in static HTML or `web_fetch` output (which strips `<script>` tags during conversion).
-
-**To accurately check for schema markup, use one of these methods:**
-
-1. **Browser tool** — render the page and run: `document.querySelectorAll('script[type="application/ld+json"]')`
-2. **Google Rich Results Test** — https://search.google.com/test/rich-results
-3. **Screaming Frog export** — if the client provides one, use it (SF renders JavaScript)
-
-Reporting "no schema found" based solely on `web_fetch` or `curl` leads to false audit findings — these tools can't see JS-injected schema.
+各指摘にはURL、環境、取得日時、HTTP状態、該当箇所、観測方法を付ける。ローカルでの存在、公開配信、Googleでのindex・表示は別々に検証する。
 
 ### Priority Order
 
@@ -78,7 +71,7 @@ Reporting "no schema found" based solely on `web_fetch` or `curl` leads to false
 - Exists and accessible
 - Submitted to Search Console
 - Contains only canonical, indexable URLs
-- Updated regularly
+- `lastmod` は本文・構造化データ・リンク等の重要な更新日を正確に表す。ビルドのたびに全URLを今日へ更新しない。Googleは `priority` / `changefreq` を使わない
 - Proper formatting
 
 **Site Architecture**
@@ -99,8 +92,8 @@ Reporting "no schema found" based solely on `web_fetch` or `curl` leads to false
 
 **Index Status**
 
-- site:domain.com check
-- Search Console coverage report
+- Search Console Page indexing と重要URLのURL Inspectionを優先する
+- `site:` は補助的な発見手段であり、網羅的なindex件数や不掲載の証明に使わない
 - Compare indexed vs. expected
 
 **Indexation Issues**
@@ -113,7 +106,7 @@ Reporting "no schema found" based solely on `web_fetch` or `curl` leads to false
 
 **Canonicalization**
 
-- All pages have canonical tags
+- index対象ページのcanonicalと内部リンク・sitemap・redirectを整合させる。canonicalはシグナルであり、Google選択canonicalもURL Inspectionで確認する
 - Self-referencing canonicals on unique pages
 - HTTP → HTTPS canonicals
 - www vs. non-www consistency
@@ -123,9 +116,8 @@ Reporting "no schema found" based solely on `web_fetch` or `curl` leads to false
 
 **Core Web Vitals**
 
-- LCP (Largest Contentful Paint): < 2.5s
-- INP (Interaction to Next Paint): < 200ms
-- CLS (Cumulative Layout Shift): < 0.1
+- 良好の目安: LCP ≤ 2.5s、INP ≤ 200ms、CLS ≤ 0.1。実ユーザーデータの75パーセンタイルで評価する
+- URL単位/オリジン単位、モバイル/デスクトップ、集計期間を記録する。CrUX未取得は未取得とし、Lighthouseのラボ値やTBTを実測INPの代用にしない
 
 **Speed Factors**
 
@@ -173,81 +165,7 @@ Reporting "no schema found" based solely on `web_fetch` or `curl` leads to false
 
 ## International SEO & Localization
 
-Check when the site serves multiple languages or regions. Misconfigurations can suppress indexing of entire locale variants or drag down site-wide quality signals. See [International SEO reference](references/international-seo.md) for evidence and source URLs.
-
-### Hreflang
-
-Three equivalent placement methods: HTML `<link>` in `<head>`, HTTP `Link` headers, XML sitemap `<xhtml:link>`. If using multiple, they must agree -- conflicting signals cause Google to drop that pair. For 10+ locales, prefer sitemap-based (no page weight, no per-request cost).
-
-**Check for:**
-
-- Self-referencing entry on every page (page must include itself in the hreflang set)
-- Reciprocal links (if A points to B, B must point back to A -- or both are ignored)
-- Valid codes: ISO 639-1 language + optional ISO 3166-1 Alpha 2 region (e.g., `en`, `en-GB` -- never `en-UK`)
-- `x-default` present, pointing to fallback page (language selector or default locale)
-- All target URLs return 200, are indexable, and match their canonical URL
-- No duplicate language-region codes pointing to different URLs
-
-**Common errors:** Missing self-referencing entry (all hreflang ignored). No return tag / one-directional (pair dropped). Invalid codes like `en-UK` (use `en-GB`). Hreflang target is non-canonical, 404, or blocked (cluster discarded). HTML and sitemap annotations disagree (conflicting pair dropped).
-
-**At scale:** `<xhtml:link>` children don't count toward 50K URL sitemap limit, but the 50MB file size limit becomes the bottleneck (plan 2K-5K URLs per file with full hreflang). Focus hreflang on pages receiving wrong-language traffic -- not required on every page. For Bing: supplement with `<html lang>` and `<meta http-equiv="content-language">` (Bing treats hreflang as a weak signal).
-
-### Canonicalization for Multilingual Sites
-
-- Each locale page must self-canonical (e.g., `/ar/page` canonicals to `/ar/page`)
-- Never cross-locale canonical (French to English) -- suppresses the non-canonical locale entirely
-- Canonical URL must appear in the hreflang set -- if not, all hreflang is ignored
-- Canonical overrides hreflang when they conflict
-- Protocol/domain must be consistent across canonical, hreflang, and sitemap (`https` + same domain variant)
-- Paginated locale pages: self-referencing canonical per page (never canonical page 2+ to page 1)
-
-**Common mistakes:** all locales canonical to English (kills indexing), canonical URL not in hreflang set (silently ignored), protocol mismatch between canonical and hreflang, CMS setting deep page canonical to homepage.
-
-### International Sitemaps
-
-**Check for:**
-
-- `xmlns:xhtml` namespace on `<urlset>`, each `<url>` includes `<xhtml:link>` for all locales including itself
-- `x-default` alternate included; all URLs absolute (full protocol + domain)
-- Sitemap index in Search Console and robots.txt; split by content type, not by locale
-
-**Next.js caveat:** `alternates.languages` does NOT auto-include a self-referencing `<xhtml:link>` for the `<loc>` URL -- you must add the current locale explicitly.
-
-### Locale URL Structure
-
-**Recommended:** Subdirectories (`/en/`, `/ar/`). **Acceptable:** Subdomains or ccTLDs. **Not recommended:** URL parameters (`?lang=en`).
-
-**Check for:**
-
-- Consistent locale prefix strategy; all locales prefixed (hiding locale from URLs prevents Google from distinguishing versions)
-- Root URL handled as `x-default` with redirect, or serves default locale content
-- No IP/Accept-Language content negotiation (Googlebot: US IPs, no Accept-Language header)
-- Trailing slash + case consistency across locale paths, canonicals, hreflang, and sitemaps
-- 301 redirects from non-canonical format to canonical
-
-**Note:** Google's International Targeting report in Search Console is deprecated. Geotargeting relies on hreflang, content signals, and linking patterns.
-
-### Content Quality Across Locales
-
-**Translation quality:**
-
-- AI-translated content is not inherently spam (Google's 2025 stance), but scaled low-value translations can trigger scaled content abuse policy
-- Google uses visible content to determine language -- translate ALL page content (title, description, headings, body), not just boilerplate
-- Translating only template/nav while main content stays in original language creates duplicates
-
-**Thin locale pages:**
-
-- Helpful content system is site-wide -- many thin locale pages can suppress rankings for strong pages too
-- Don't noindex thin locales (wastes crawl budget) or cross-locale canonical (conflicts with hreflang)
-- Best approach: don't create locale pages you cannot make genuinely helpful
-
-**Check for:**
-
-- All locale pages have fully translated main content (not just UI chrome)
-- No near-identical content across locales ("Duplicate, Google chose different canonical" in GSC)
-- Hreflang only for locales with genuine content and search demand
-- Localized signals: currency, phone format, addresses where applicable
-- Broken hreflang links (404s, redirects) waste crawl budget AND invalidate hreflang clusters
+複数言語・地域を提供する場合だけ [International SEO reference](references/international-seo.md) を読む。実在する翻訳本文と相互hreflangを確認する。言語数による実装方式の固定閾値や、低品質ページへのnoindex一律禁止は設けない。
 
 ---
 
@@ -259,7 +177,7 @@ Three equivalent placement methods: HTML `<link>` in `<head>`, HTTP `Link` heade
 
 - Unique titles for each page
 - Primary keyword near beginning
-- 50-60 characters (visible in SERP)
+- 固定文字数で合否を決めず、内容の識別性・簡潔さ・言語・端末上の表示を確認する。Googleの表示は幅に応じて省略される
 - Compelling and click-worthy
 - Brand name placement (end, usually)
 
@@ -267,7 +185,7 @@ Three equivalent placement methods: HTML `<link>` in `<head>`, HTTP `Link` heade
 
 - Duplicate titles
 - Too long (truncated)
-- Too short (wasted opportunity)
+- 内容を識別できない曖昧なタイトル
 - Keyword stuffing
 - Missing entirely
 
@@ -276,7 +194,7 @@ Three equivalent placement methods: HTML `<link>` in `<head>`, HTTP `Link` heade
 **Check for:**
 
 - Unique descriptions per page
-- 150-160 characters
+- ページ固有の正確な要約。固定文字数をGoogle要件にしない。スニペットは検索語により本文からも生成される
 - Includes primary keyword
 - Clear value proposition
 - Call to action
@@ -285,7 +203,7 @@ Three equivalent placement methods: HTML `<link>` in `<head>`, HTTP `Link` heade
 
 - Duplicate descriptions
 - Auto-generated garbage
-- Too long/short
+- 冗長、曖昧、または本文と不一致
 - No compelling reason to click
 
 ### Heading Structure
@@ -300,7 +218,7 @@ Three equivalent placement methods: HTML `<link>` in `<head>`, HTTP `Link` heade
 
 **Common issues:**
 
-- Multiple H1s
+- 主見出しが曖昧。H1数だけでGoogleのペナルティと判定しない（リポジトリの見出し規約は別途守る）
 - Skip levels (H1 → H3)
 - Headings used for styling only
 - No H1 on page
@@ -309,7 +227,7 @@ Three equivalent placement methods: HTML `<link>` in `<head>`, HTTP `Link` heade
 
 **Primary Page Content**
 
-- Keyword in first 100 words
+- 冒頭で読者の課題と得られる答えを明確にする。最初の100語へのキーワード挿入を必須にしない
 - Related keywords naturally used
 - Sufficient depth/length for topic
 - Answers search intent
@@ -327,11 +245,11 @@ Three equivalent placement methods: HTML `<link>` in `<head>`, HTTP `Link` heade
 **Check for:**
 
 - Descriptive file names
-- Alt text on all images
+- 情報画像には目的を伝えるalt、装飾画像には空のaltを使う
 - Alt text describes image
 - Compressed file sizes
 - Modern formats (WebP)
-- Lazy loading implemented
+- 画面外画像は遅延読み込みを検討し、LCP候補・主要な初期表示画像を一律にlazyにしない
 - Responsive images
 
 ### Internal Linking
@@ -358,13 +276,13 @@ Three equivalent placement methods: HTML `<link>` in `<head>`, HTTP `Link` heade
 - Clear primary keyword target
 - Title, H1, URL aligned
 - Content satisfies search intent
-- Not competing with other pages (cannibalization)
+- 同じ語句を扱うだけで競合と判定しない。クエリ別の着地URL・検索意図・成果を確認してから統合を検討する
 
 **Site-Wide**
 
 - Keyword mapping document
 - No major gaps in coverage
-- No keyword cannibalization
+- 意図の異なるページをキーワード重複だけで削除・統合しない
 - Logical topical clusters
 
 ---
@@ -498,7 +416,7 @@ Same format as above
 
 ## References
 
-- [AI Writing Detection](references/ai-writing-detection.md): Common AI writing patterns to avoid (em dashes, overused phrases, filler words)
+- [文章品質のレビュー](references/ai-writing-detection.md): 事実・具体性・読みやすさを評価する。文体からAI生成や検索違反を断定しない
 - [International SEO](references/international-seo.md): Evidence and sources for hreflang, canonical + i18n, sitemaps, URL structure, and content quality across locales
 - For AI search optimization (AEO, GEO, LLMO, AI Overviews), see the **ai-seo** skill
 
@@ -541,3 +459,17 @@ Same format as above
 - **ai-seo**: For optimizing content for AI search engines (AEO, GEO, LLMO)
 - **schema**: For implementing structured data
 - **cro**: For optimizing pages for conversion (not just ranking)
+
+## 診断の追加チェックと根拠
+
+- robots.txt はクロール制御で、index削除やアクセス保護ではない。`noindex` を読み取れるクロール状態か、HTTPの `X-Robots-Tag` とmetaが矛盾しないかを確認する。PDF等はヘッダーも対象。認証が必要な内容の保護をrobotsで代用しない。
+- 流入低下は同じ長さ・曜日構成の期間、前年同期、検索タイプ、国、端末、ページ、クエリに分解する。表示回数・クリック・CTR・順位を分け、季節性、計測変更、公開変更、障害、検索更新を照合してから原因仮説を置く。相関だけで原因を断定しない。
+- 指摘は影響・確度・対応コストで優先し、「観測」「仮説」「提案」「検証結果」を分ける。変更後すぐの順位変動を効果の証明にしない。再計測条件と期間を定める。
+
+公式確認先（仕様を変更するときは再取得する）:
+
+- [タイトル](https://developers.google.com/search/docs/appearance/title-link) / [スニペット](https://developers.google.com/search/docs/appearance/snippet)
+- [robots meta / HTTP header](https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag)
+- [sitemap](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap)
+- [流入低下の診断](https://developers.google.com/search/docs/monitor-debug/debugging-search-traffic-drops)
+- [Core Web Vitals](https://web.dev/articles/vitals)
