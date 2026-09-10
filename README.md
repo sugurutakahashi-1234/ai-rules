@@ -28,7 +28,7 @@
 
 - `rulesync install` は lock 通りに取得する（初回は HEAD を解決して lock に書く）
 - 最新へ追従するのは `rulesync install --update`。lock の差分を見てからコミットする
-- CI は `rulesync install --frozen && rulesync generate --check` で lock との乖離を検出する
+- CI は `rulesync doctor --strict && rulesync install --frozen && rulesync generate --check` の 3 段。doctor は設定の書き間違いを、あとの 2 つは lock との乖離を検出する
 - 戻したいときは lock を revert する。タグは切らない
 
 `rules` だけを書けば skills は取得されない。**`"skills": []` と書いてはいけない**（「skills を選択したが 0 件一致」と解釈されて install が失敗する）。
@@ -142,7 +142,7 @@ rulesync は**コマンドを打ったときだけ**動く（自動では走ら�
 
 - **sync し忘れ**は lefthook の pre-commit フックで防ぐ（`templates/lefthook.yml` の `rulesync-generate` ブロック）。`.rulesync/` や `rulesync.jsonc` をステージしてコミットすると、生成物が再生成されて同じコミットに含まれる。generate はコミット済みの取得物 `.curated/` を読むだけなのでオフラインで数秒
 - **上流の更新追従**は自動化しない。下の「更新の追従」の手順で、必要なときに手で上げる
-- CI の drift チェック（`--frozen`）は保険として残す
+- CI の検査（`doctor --strict` と `--frozen`）は保険として残す。**`doctor` は必ず入れる**——rulesync の設定スキーマは非厳格で、`targets` を `target` と書き間違えても黙って無視されるため、これが唯一の検出手段になる
 
 ## templates/ — rulesync の配布対象外のもの
 
