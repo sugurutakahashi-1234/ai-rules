@@ -69,7 +69,7 @@ npx -y skills@latest add anthropics/skills -g -s skill-creator -a claude-code -a
 npx -y skills@latest add vercel-labs/skills -g -s find-skills -a claude-code -a codex -y
 ```
 
-`-g` がグローバル、`-s` が個別指定（省くと全スキルが入る）。導入時のコミットで固定されるので、最新にするのは `npx -y skills@latest update -g -y`。打ち忘れが不安なら、この 3 行を持つリポジトリ側の `SessionStart` フックでスロットルを付けて走らせる。
+`-g` がグローバル、`-s` が個別指定（省くと全スキルが入る）。導入時のコミットで固定されるので、最新にするのは `npx -y skills@latest update -g -y`。自動更新は仕込まない（rulesync 側と同じく、上げたいときに上げる）。追従忘れの受け皿は `skills-review` スキル。
 
 ## このリポジトリ自身の設定
 

@@ -17,7 +17,7 @@ description: >
 
 | 経路 | 台帳 | 追従 |
 |---|---|---|
-| グローバル（skills CLI） | `~/.agents/.skill-lock.json` | `npx -y skills@latest update -g` |
+| グローバル（skills CLI） | 導入コマンドを持つリポジトリ（マシン設定リポジトリなど） | `npx -y skills@latest update -g`。自動更新はしないので、ここが唯一の受け皿 |
 | rulesync の sources | 作業中リポの `rulesync.jsonc` と `rulesync.lock` | `rulesync install --update` |
 | 派生して所有（frontmatter に `source` と `forked_at`） | 各 SKILL.md の frontmatter | 追従しない。上流との差と代替を点検する |
 
