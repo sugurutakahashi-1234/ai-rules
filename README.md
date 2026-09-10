@@ -39,14 +39,69 @@
 他人が公開しているスキルは、このリポジトリにコピーせず、消費側の `sources` に上流リポを直接書く。追従は rulesync に任せる。
 
 ```jsonc
-{ "source": "anthropics/skills", "skills": ["frontend-design"] },
 { "source": "coji/natural-japanese", "skills": ["natural-japanese"] }
 ```
 
-- `anthropics/skills` の `frontend-design` — UI の見た目の方向付け
 - `coji/natural-japanese` — 仕事の日本語文書（議事録・レポート・企画書・記事）を設計から書く。AI 臭の除去を工程に含む
 
 本文に手を入れたくなったら、コピーして「派生」としてこのリポジトリで所有する（下のスキル一覧を参照）。中途半端に「コピーして少し直した」状態を残さない。
+
+## グローバルに入れるスキル（ガードレール型 6 本）
+
+グローバルスキルは**どのリポジトリで作業していても description がプロンプトに載る**。だからここに置くのは、モデルが自力では守れない「考え方の境界」を引くものだけにする。手順型・成果物の型（比較モック、PDF 変換、図の書き出しなど）はコンテキストを食うだけなので、使うリポジトリの `sources` に入れる。判断基準は `skill-layering` ルールの「何をスキル・ハーネスとして残すか」が正本。
+
+| スキル | 上流 | 何をするか |
+|---|---|---|
+| `grill-me` | mattpocock/skills | 計画や設計を、作り始める前に容赦なく問い詰めて磨く。曖昧なまま実装に入るのを止める |
+| `grill-with-docs` | mattpocock/skills | 同じ問い詰めをしながら、決まったことを ADR と用語集として書き出す |
+| `domain-modeling` | mattpocock/skills | プロジェクトの用語と概念を整理する。CONTEXT.md や ADR を書く・直すとき |
+| `wayfinder` | mattpocock/skills | 1 セッションに収まらない大きな作業を、issue 上の決定チケットの地図にして 1 つずつ解いていく |
+| `skill-creator` | anthropics/skills | スキルの新規作成・改善・description の最適化・eval による性能測定 |
+| `find-skills` | vercel-labs/skills | 「こういうことをしたい」から、導入できる既存スキルを探す |
+
+### 導入（Claude Code と Codex の両方に入る）
+
+[skills CLI](https://github.com/vercel-labs/skills) を使う。`-a claude-code -a codex` を付けると、実体を `~/.agents/skills/` に 1 つだけ置き、各エージェントのディレクトリからは symlink で参照する形になる。実体が 1 つなので、更新すれば Claude Code と Codex の両方に同時に反映される。
+
+```bash
+npx -y skills@latest add mattpocock/skills -g -s grill-me -s grill-with-docs -s domain-modeling -s wayfinder -a claude-code -a codex -y
+npx -y skills@latest add anthropics/skills -g -s skill-creator -a claude-code -a codex -y
+npx -y skills@latest add vercel-labs/skills -g -s find-skills -a claude-code -a codex -y
+```
+
+`-g` がグローバル、`-s` が個別指定。`-s` を省くとそのリポジトリの全スキルが入るので必ず選ぶ。
+
+### 最新に保つ
+
+skills CLI はインストール時のコミットで固定する（自動追従しない）。更新は次のコマンドで、`~/.agents/.skill-lock.json` に記録されたソースを見て差分だけ取り直す。
+
+```bash
+npx -y skills@latest update -g -y   # 更新
+npx -y skills@latest list -g        # 現在の一覧
+npx -y skills@latest remove -g <名前>  # 外す
+```
+
+打ち忘れを防ぐなら、**この 3 行の導入コマンドを持つリポジトリ**（マシン設定リポジトリなど）の `.claude/settings.json` に `SessionStart` フックを置き、スロットル付きで `update -g` を走らせる。グローバル設定（`~/.claude/settings.json`）には置かない。マシン管理の仕事はマシン設定リポジトリの管轄で、どのスキルを入れているかの台帳もそのコマンド自体が兼ねる。
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$HOME/.agents/.skills-update-stamp\"; now=$(date +%s); last=$(stat -f %m \"$f\" 2>/dev/null || echo 0); if [ $((now - last)) -gt 604800 ]; then touch \"$f\"; npx -y skills@latest update -g -y > \"$HOME/.agents/last-skills-update.log\" 2>&1; fi",
+            "async": true,
+            "timeout": 300,
+            "statusMessage": "グローバルスキルを更新中…"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 ## ルールを書くときの注意（globs の使い分け）
 
