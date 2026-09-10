@@ -4,3 +4,13 @@ commit-msg:
   jobs:
     - name: commitlint
       run: bunx commitlint --edit {1}
+
+# 正本 .rulesync/ を直したら CLAUDE.md / AGENTS.md を再生成して同じコミットに含める。
+# 生成対象はこのリポジトリ自身の作業指示だけで、配布物の rules/ ・ skills/ は触らない。
+pre-commit:
+  jobs:
+    - name: rulesync-generate
+      glob:
+        - ".rulesync/**"
+        - "rulesync.jsonc"
+      run: rulesync generate && git add CLAUDE.md AGENTS.md

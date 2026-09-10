@@ -103,6 +103,10 @@ npx -y skills@latest remove -g <名前>  # 外す
 }
 ```
 
+## このリポジトリ自身の設定
+
+`rulesync.jsonc` と `.rulesync/rules/main.md` は、**このリポジトリで作業するエージェント向けの指示**（`CLAUDE.md` / `AGENTS.md` を生成する）。配布物である `rules/` ・ `skills/` とは別物で、消費側には配布されない。`sources` は使わない（自分自身を参照すると循環するため）。
+
 ## ルールを書くときの注意（globs の使い分け）
 
 frontmatter の `globs` は「どのファイルを触るときに適用するか」。Claude Code 向け生成物では `paths` になり、**`globs` 付きルールは該当ファイルを読み書きするまで読み込まれない**。

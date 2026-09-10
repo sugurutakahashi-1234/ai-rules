@@ -1,0 +1,9 @@
+{
+  "$schema": "https://github.com/dyoshikawa/rulesync/releases/latest/download/config-schema.json",
+  // このリポジトリ自身のエージェント指示（CLAUDE.md / AGENTS.md）を .rulesync/rules/ から生成する。
+  // 配布物の rules/ ・ skills/ とは別物。sources は使わない（自分自身を参照すると循環するため）。
+  "targets": ["claudecode", "codexcli"],
+  "features": ["rules"],
+  "outputRoots": ["."],
+  "delete": true
+}

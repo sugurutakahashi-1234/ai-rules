@@ -2,11 +2,14 @@
   "name": "ai-rules",
   "private": true,
   "scripts": {
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "sync:agents": "rulesync generate",
+    "sync:agents:check": "rulesync doctor --strict && rulesync generate --check"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
-    "lefthook": "^2.1.12"
+    "lefthook": "^2.1.12",
+    "rulesync": "^16.26.1"
   }
 }
