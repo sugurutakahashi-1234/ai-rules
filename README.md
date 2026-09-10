@@ -96,7 +96,7 @@ git フック等の設定ファイルは rulesync では配布できない（rul
 - `templates/lefthook.yml` — commit-msg で commitlint、pre-commit で rulesync 自動 sync。任意で textlint。**既存の lefthook.yml があるリポジトリでは上書きせずマージする**
 - `templates/commitlint.config.mjs` — `language-and-commits` ルールと対をなす commitlint 設定（commitlint 未導入リポジトリ向け。既存設定があるリポジトリはそちらを正とする）
 - `templates/rulesync-update.yml` — 週 1 で sources を最新へ追従させ PR を作る workflow。`.github/workflows/` に置く。前提はファイル冒頭のコメントを参照（private な source を参照するリポジトリは token が要る）
-- `templates/.textlintrc.json` — `japanese-writing` ルールと対をなす textlint 設定。文章が主体のリポジトリで使う
+- `templates/.textlintrc.json` — `japanese-writing` ルールと対をなす textlint 設定。文章が主体のリポジトリで使う。`ai-tech-writing-guideline` は「適切な」のような一般語まで指摘し、severity 指定に関わらずコミットを止めるので既定で無効。箇条書き主体の文書（スキルシート等）では `no-ai-list-formatting` / `no-ai-emphasis-patterns` も切る
 
 導入（消費側リポジトリで）:
 
