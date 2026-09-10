@@ -71,7 +71,7 @@ frontmatter の `globs` は「どのファイルを触るときに適用する�
 
 | スキル | 内容 | 備考 |
 |---|---|---|
-| `design-compare` | デザイン案を 1 枚の比較モックにして選んでもらう | |
+| `design-compare` | デザイン案や Markdown 文書の構成案を 1 枚の比較モックにして選んでもらう | |
 | `image-gen` | Codex 経由 gpt-image-2 の呼び出し規約・並列一括生成 | `scripts/parallel-imggen.sh` 同梱 |
 | `md-infographic` | 章扉インフォグラフィックのスタイル定型 | **前提: `image-gen` も併せて導入** |
 | `github-issue-infographic` | GitHub issue へのインフォグラフィック差し込み | **前提: `image-gen` も併せて導入** |
