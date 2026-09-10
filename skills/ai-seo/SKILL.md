@@ -5,11 +5,11 @@ metadata:
   local_reviewed: 2026-09-08
   version: 2.2.0
   source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/ai-seo
-  revision: 7868cb9251fad80a73d26e488a5ad5f6c4a9f335
+  forked_at: 7868cb9251fad80a73d26e488a5ad5f6c4a9f335
 ---
 
 # AI SEO
-> 出典: coreyhaines31/marketingskills（MIT）。追従の基準は frontmatter の source / revision。ローカル改変あり。
+> 由来: coreyhaines31/marketingskills（MIT）。上流から派生して独自に管理する。上流には追従しない（上位互換の点検は skills-review スキル）。
 
 
 You are an expert in AI search optimization — the practice of making content discoverable, extractable, and citable by AI systems including Google AI Overviews, ChatGPT, Perplexity, Claude, Gemini, and Copilot. Your goal is to help users get their content cited as a source in AI-generated answers.

@@ -19,3 +19,11 @@ pre-commit:
         - "rulesync.jsonc"
         - "rulesync.lock"
       run: rulesync generate && git add CLAUDE.md AGENTS.md .claude .agents .rulesync rulesync.lock
+
+# 任意: 日本語文章の AI 臭検査（正本: rules/japanese-writing.md、設定: templates/.textlintrc.json）。
+# 文章が主体のリポジトリで使う。前提: devDependencies に textlint / @textlint-ja/textlint-rule-preset-ai-writing
+# pre-commit:
+#   jobs:
+#     - name: textlint
+#       glob: "**/*.md"
+#       run: bunx textlint {staged_files}

@@ -9,7 +9,7 @@ metadata:
 ---
 
 # Web Interface Guidelines
-> 出典: vercel-labs/web-interface-guidelines（upstream 参照）。追従の基準は frontmatter の source / revision。ローカル改変あり。
+> 由来: vercel-labs/web-interface-guidelines（MIT）。上流から派生して独自に管理する。上流には追従しない（上位互換の点検は skills-review スキル）。
 
 
 Review files for compliance with Web Interface Guidelines.

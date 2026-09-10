@@ -6,11 +6,11 @@ metadata:
   author: web-quality-skills
   version: "1.0"
   source: https://github.com/addyosmani/web-quality-skills/tree/main/skills/web-quality-audit
-  revision: 95d6e255afe1596b557d7a8498517884438f5b3a
+  forked_at: 95d6e255afe1596b557d7a8498517884438f5b3a
 ---
 
 # Web quality audit
-> 出典: addyosmani/web-quality-skills（MIT）。追従の基準は frontmatter の source / revision。ローカル改変あり。
+> 由来: addyosmani/web-quality-skills（MIT）。上流から派生して独自に管理する。上流には追従しない（上位互換の点検は skills-review スキル）。
 
 
 Comprehensive quality review based on Google Lighthouse audits. Covers Performance, Accessibility, SEO, and Best Practices across 150+ checks.
