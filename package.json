@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "prepare": "lefthook install",
-    "sync:agents": "rulesync generate",
-    "sync:agents:check": "rulesync doctor --strict && rulesync generate --check"
+    "sync:agents": "bunx rulesync generate",
+    "sync:agents:check": "bunx rulesync doctor --strict && bunx rulesync generate --check"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",

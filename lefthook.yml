@@ -13,4 +13,4 @@ pre-commit:
       glob:
         - ".rulesync/**"
         - "rulesync.jsonc"
-      run: rulesync generate && git add CLAUDE.md AGENTS.md
+      run: bunx rulesync generate && git add CLAUDE.md AGENTS.md
