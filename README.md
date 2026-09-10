@@ -141,7 +141,7 @@ frontmatter の `globs` は「どのファイルを触るときに適用する�
 rulesync は**コマンドを打ったときだけ**動く（自動では走らない）。
 
 - **sync し忘れ**は lefthook の pre-commit フックで防ぐ（`templates/lefthook.yml` の `rulesync-generate` ブロック）。`.rulesync/` や `rulesync.jsonc` をステージしてコミットすると、生成物が再生成されて同じコミットに含まれる。generate はコミット済みの取得物 `.curated/` を読むだけなのでオフラインで数秒
-- **上流の更新追従**は週 1 の GitHub Actions が `install --update` を回して PR を作る（`templates/rulesync-update.yml`）。自動マージはしない。lock の差分を PR で見るのが latest 追従の関所
+- **上流の更新追従**は自動化しない。下の「更新の追従」の手順で、必要なときに手で上げる
 - CI の drift チェック（`--frozen`）は保険として残す
 
 ## templates/ — rulesync の配布対象外のもの
@@ -150,7 +150,6 @@ git フック等の設定ファイルは rulesync では配布できない（rul
 
 - `templates/lefthook.yml` — commit-msg で commitlint、pre-commit で rulesync 自動 sync。任意で textlint。**既存の lefthook.yml があるリポジトリでは上書きせずマージする**
 - `templates/commitlint.config.mjs` — `language-and-commits` ルールと対をなす commitlint 設定（commitlint 未導入リポジトリ向け。既存設定があるリポジトリはそちらを正とする）
-- `templates/rulesync-update.yml` — 週 1 で sources を最新へ追従させ PR を作る workflow。`.github/workflows/` に置く。前提はファイル冒頭のコメントを参照（private な source を参照するリポジトリは token が要る）
 - `templates/.textlintrc.json` — `japanese-writing` ルールと対をなす textlint 設定。文章が主体のリポジトリで使う。`ai-tech-writing-guideline` は「適切な」のような一般語まで指摘し、severity 指定に関わらずコミットを止めるので既定で無効。箇条書き主体の文書（スキルシート等）では `no-ai-list-formatting` / `no-ai-emphasis-patterns` も切る
 
 導入（消費側リポジトリで）:
@@ -158,7 +157,6 @@ git フック等の設定ファイルは rulesync では配布できない（rul
 ```bash
 bun add -d lefthook @commitlint/cli @commitlint/config-conventional
 cp <このリポ>/templates/lefthook.yml <このリポ>/templates/commitlint.config.mjs .
-mkdir -p .github/workflows && cp <このリポ>/templates/rulesync-update.yml .github/workflows/
 bunx lefthook install
 # 文章が主体のリポジトリなら
 bun add -d textlint @textlint-ja/textlint-rule-preset-ai-writing
@@ -173,6 +171,19 @@ cp <このリポ>/templates/.textlintrc.json .
 
 ## 更新の追従
 
-- 消費側は `source` にタグを付けず、`rulesync.lock` をコミットする（取得内容は commit SHA と sha256 で再現される）
+**自動追従はしない。** rulesync の `rulesync.lock` は npm / bun の lock と同じ思想で、解決済みの commit SHA とファイルの sha256 を記録して再現性を担保するもの。バージョン範囲の指定という概念がなく、`install --update` を明示的に打たない限り取得内容は動かない。だから追従は「上げたいときに上げる」でよい。
+
+- 消費側は `source` にタグを付けず、`rulesync.lock` をコミットする
 - このリポジトリを変更したら main に push するだけでよい。タグは切らない（過去のタグは残っているが、新しく作らない）
-- 消費側の取り込みは `rulesync install --update` → 生成物と lock をコミット。週 1 の workflow が PR を作る
+- 直したルールを各リポジトリへ反映するのは、その必要が出たとき。忘れても壊れない（lock 固定なので古いまま安定して動く）
+
+消費側 1 リポジトリでの更新:
+
+```bash
+rulesync install --update && rulesync generate
+git add -A && git commit -m "improve(rulesync): 共有ルールを最新へ追従"
+```
+
+複数リポジトリを一度に上げるなら、clone を横断して同じことをするスクリプトを 1 本持つとよい（`git status` が汚れているリポジトリはスキップし、`--dry-run` で lock と上流 HEAD の差だけ先に見られる形にする）。
+
+**追従忘れの受け皿は `skills-review` スキル**。月 1 の棚卸しで、各リポジトリの lock と上流 HEAD の差、外部スキルの更新状況、上位互換の有無をまとめて点検する。
