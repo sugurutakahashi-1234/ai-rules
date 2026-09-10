@@ -26,7 +26,7 @@ README は**消費側の読み物**として書く。ここで作業する人向
 
 ## 変更したら
 
-1. `bun run sync:agents` で CLAUDE.md / AGENTS.md を再生成する（pre-commit フックでも自動で走る）。このリポジトリは `sources` を使わないので、中身は `rulesync generate` だけ（消費側は `install && generate`。定義は README が正本）
+1. `bun run rulesync` で CLAUDE.md / AGENTS.md を再生成する（pre-commit フックでも自動で走る）。このリポジトリは `sources` を使わないので、中身は `rulesync generate` だけ（消費側は `install && generate`。定義は README が正本）
 2. ルールやスキルを増減したら README の一覧表も直す
 3. 消費側への反映は必要になったとき。組織のリポジトリ群は所属組織側の一括更新の仕組みに任せ、個人リポは `rulesync install --update`
 
