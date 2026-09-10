@@ -1,4 +1,9 @@
 {
+  // japanese-writing ルールと対をなす textlint 設定。
+  // ai-tech-writing-guideline は「適切な」のような一般語まで指摘し、severity 指定に
+  // 関わらず exit 1 でコミットを止めるので既定で無効にしている。
+  // 箇条書き主体の文書（スキルシート等）では no-ai-list-formatting と
+  // no-ai-emphasis-patterns も false にする。
   "rules": {
     "@textlint-ja/preset-ai-writing": {
       "ai-tech-writing-guideline": false
