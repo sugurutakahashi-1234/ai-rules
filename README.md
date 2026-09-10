@@ -57,8 +57,20 @@
 ```
 
 - `rulesync install` は lock 通りに取得する（初回は HEAD を解決して lock に書く）
-- CI は `rulesync doctor --strict && rulesync install --frozen && rulesync generate --check` の 3 段。doctor は設定の書き間違いを、あとの 2 つは lock との乖離を検出する
 - 戻したいときは lock を revert する。タグは切らない
+
+呼び出しは `package.json` の scripts に置く。**名前はこの 2 つで揃える**（CI・lefthook・スキル本文から参照されるため、リポジトリごとに変えない）。
+
+```jsonc
+"scripts": {
+  "sync:agents": "bunx rulesync install && bunx rulesync generate",
+  "sync:agents:check": "bunx rulesync doctor --strict && bunx rulesync install --frozen && bunx rulesync generate --check"
+}
+```
+
+- `sync:agents:check` は 3 段。`doctor` が設定の書き間違いを、あとの 2 つが lock との乖離を検出する。**`doctor` は必ず入れる**（rulesync の設定スキーマは非厳格で、`targets` を `target` と書き間違えても黙って無視されるため、これが唯一の検出手段）
+- mise を使うリポジトリは `[tasks.sync-agents]` / `[tasks.sync-agents-check]`（mise の慣習でハイフン）を置き、**中身は `bun run sync:agents` を呼ぶだけにする**。両方に実体を書くと片方を直したときにずれる
+- 生成物をコミットしない構成でなければ、`sync:agents:check` を CI に入れる
 
 **罠が 3 つある。**
 
