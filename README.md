@@ -69,6 +69,7 @@
 ```
 
 - `rulesync:check` は 3 段。`doctor` が設定の書き間違いを、あとの 2 つが lock との乖離を検出する。**`doctor` は必ず入れる**（rulesync の設定スキーマは非厳格で、`targets` を `target` と書き間違えても黙って無視されるため、これが唯一の検出手段）
+- **rulesync 本体は `package.json` の devDependency に入れる**（`bun.lock` が版を固定し、上げるときは `bun update rulesync`）。mise の `[tools]` に `"npm:rulesync"` を書かない——npm パッケージを 2 か所で管理することになり、`latest` 指定だと実行のたびに版が変わって再現性も失う。mise が持つのは言語ランタイムと単体の CLI（bun, node, uv, gh, lefthook など）だけ
 - mise を使うリポジトリは `[tasks.rulesync]` / `[tasks."rulesync:check"]` を置き、**中身は `bun run rulesync` を呼ぶだけにする**。両方に実体を書くと片方を直したときにずれる（mise はタスク名にコロンを使えるので表記も揃う）
 - 生成物をコミットしない構成でなければ、`rulesync:check` を CI に入れる
 
