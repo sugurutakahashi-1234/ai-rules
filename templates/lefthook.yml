@@ -1,6 +1,6 @@
 # lefthook 初期テンプレート（lefthook 未導入リポジトリ向け）。
 # 既に lefthook.yml があるリポジトリでは上書きせず、下の 2 ブロックをマージする。
-# 前提: bun + devDependencies に lefthook / @commitlint/cli / @commitlint/config-conventional
+# 前提: bun + devDependencies に lefthook / @commitlint/cli / @commitlint/config-conventional / @commitlint/types
 
 # コミットメッセージ検証（正本: sugurutakahashi-1234/ai-rules の rules/language-and-commits.md）
 commit-msg:

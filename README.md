@@ -99,12 +99,12 @@ rulesync install --update && rulesync generate
 git フック等の設定ファイルは rulesync の管轄外（rulesync が扱うのはエージェント指示のみ）。各リポジトリへ実ファイルをコピーして使う。
 
 - `templates/lefthook.yml` — commit-msg で commitlint、pre-commit で rulesync 自動 sync。任意で textlint。**既存の lefthook.yml があるリポジトリでは上書きせずマージする**
-- `templates/commitlint.config.mjs` — `language-and-commits` ルールと対をなす commitlint 設定（既存設定があるリポジトリはそちらを正とする）
+- `templates/commitlint.config.ts` — `language-and-commits` ルールと対をなす commitlint 設定（既存設定があるリポジトリはそちらを正とする）
 - `templates/.textlintrc.json` — `japanese-writing` ルールと対をなす textlint 設定（どのルールを切るかはファイル内のコメント参照）
 
 ```bash
-bun add -d lefthook @commitlint/cli @commitlint/config-conventional
-cp <このリポ>/templates/lefthook.yml <このリポ>/templates/commitlint.config.mjs .
+bun add -d lefthook @commitlint/cli @commitlint/config-conventional @commitlint/types
+cp <このリポ>/templates/lefthook.yml <このリポ>/templates/commitlint.config.ts .
 bunx lefthook install
 # 文章が主体のリポジトリなら
 bun add -d textlint @textlint-ja/textlint-rule-preset-ai-writing
