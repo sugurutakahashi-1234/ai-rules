@@ -18,6 +18,8 @@
 | `language-and-commits` | なし（常時） | 日本語の使い分けとコミット規約（type 英語・subject 日本語） |
 | `code-conventions` | `**/*` | コーディング規約（コメントは WHY のみ、UTC/JST 等） |
 | `japanese-writing` | `**/*.md` | 日本語の文体規範。AI 生成文に出やすい癖（空虚な形容・予告・対句・翻訳調）の禁止 |
+| `github-actions` | `.github/workflows/**` | ワークフローの制約（SHA ピン・skip の扱い・デプロイのゲート） |
+| `dependency-hygiene` | なし（常時） | 依存の扱い（公開直後を避ける・更新 bot の判断・直せない脆弱性） |
 | `skill-layering` | スキル関連 | スキル・ルールを新設するときの置き場所判断（知見の集約先） |
 
 `globs` 付きのルールは、該当ファイルを読み書きするまで読み込まれない。常時効かせたいものには `globs` を書かない。
