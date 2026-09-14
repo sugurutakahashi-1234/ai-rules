@@ -14,6 +14,7 @@
 | ルール | globs | 内容 |
 |---|---|---|
 | `git-safety` | なし（常時） | 破壊的な git 操作の禁止 |
+| `secret-safety` | なし（常時） | シークレット検知で止まったときの作法（回避せず値を無効化する） |
 | `language-and-commits` | なし（常時） | 日本語の使い分けとコミット規約（type 英語・subject 日本語） |
 | `code-conventions` | `**/*` | コーディング規約（コメントは WHY のみ、UTC/JST 等） |
 | `japanese-writing` | `**/*.md` | 日本語の文体規範。AI 生成文に出やすい癖（空虚な形容・予告・対句・翻訳調）の禁止 |
