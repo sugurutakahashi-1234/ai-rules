@@ -1,7 +1,7 @@
 ---
 root: false
 targets: ["*"]
-description: "シークレット検知（gitleaks）で止まったときの作法"
+description: "シークレットを危険に扱わないための規則（gitleaks で止まったときの作法）"
 ---
 
 # シークレット検知で止まったとき
