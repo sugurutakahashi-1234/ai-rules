@@ -61,7 +61,7 @@
 }
 ```
 
-- `rulesync install` は lock 通りに取得する（初回は HEAD を解決して lock に書く）
+- `rulesync install` は lock 通りに取得する（初回は HEAD を解決して lock に書く）。`rules` / `skills` の選定を広げた分は `install` だけで取得される（lock の ref にある範囲。上流に push したばかりのものは lock の ref に無いので黙って取得されない。`--update` で ref を進める）。広げたまま `install` していない状態は `--frozen` が検出する（rulesync 16.28.0 以上。それより前は選定を広げても `install` が黙って無視し、`--frozen` も通ってしまった）
 - 戻したいときは lock を revert する。タグは切らない
 
 呼び出しは `package.json` の scripts に置く。**名前はこの 2 つで揃える**（CI・lefthook・スキル本文から参照されるため、リポジトリごとに変えない）。中身が複数コマンドの合成なので、`generate` や `doctor` のような個別コマンド名は使わない——検査を足したときに名前が嘘になる。
@@ -78,10 +78,9 @@
 - mise を使うリポジトリは `[tasks.rulesync]` / `[tasks."rulesync:check"]` を置き、**中身は `bun run rulesync` を呼ぶだけにする**。両方に実体を書くと片方を直したときにずれる（mise はタスク名にコロンを使えるので表記も揃う）
 - 生成物をコミットしない構成でなければ、`rulesync:check` を CI に入れる
 
-**罠が 3 つある。**
+**罠が 2 つある。**
 
 - `"skills": []` と書いてはいけない（「skills を選択したが 0 件一致」と解釈されて install が失敗する）。`rules` と `skills` を両方省略すると全 skills が取得されるので、`rules` は必ず明示する
-- `skills` の選定を変えても `install` は取りに行かない。`--update` が要る（上流 issue [#2982](https://github.com/dyoshikawa/rulesync/issues/2982) 待ち）
 - フォーマッタが `.rulesync/`（`.curated/` 含む）や生成物（CLAUDE.md / AGENTS.md / .claude/ / .agents/）を整形すると lock の sha256 検証が崩れる。**oxfmt / prettier の ignore に両方を入れる**
 
 ## 更新の追従
@@ -93,7 +92,10 @@ rulesync install --update && rulesync generate
 ```
 
 - このリポジトリを変更したら main に push するだけでよい。タグは切らない
-- 複数リポジトリを一度に上げるなら、clone を横断して同じことをするスクリプトを 1 本持つとよい（dirty なリポジトリはスキップし、lock と上流 HEAD の差を先に見られる形にする）
+- 複数リポジトリを一度に上げるなら、clone を横断して同じことをするスクリプトを 1 本持つとよい（dirty なリポジトリはスキップし、lock と上流 HEAD の差を先に見られる形にする）。rulesync はリポジトリの境界で止まる設計で、この横断は利用側が持つ。定期実行の CI で `install --update` して PR を開くのも正当な使い方
+- `install --update` は取得内容が変わらなくても lock の `resolvedAt` を書き換える。「変更があったか」は `git diff --quiet -I '"resolvedAt"' -- rulesync.lock` のように `resolvedAt` を除いて見る（Git 2.30 以上）
+- lock が上流からどれだけ遅れているかを読み取り専用で出す公式コマンドはまだない。lock の `resolvedRef` と上流 HEAD を自分で突合する（上流 issue [#2983](https://github.com/dyoshikawa/rulesync/issues/2983) で提案中）
+- この節の運用は rulesync 公式 FAQ の [How do I keep many repositories in sync with a shared source?](https://rulesync.dyoshikawa.com/faq#how-do-i-keep-many-repositories-in-sync-with-a-shared-source) と同じ
 - 追従忘れの受け皿は `skills-review` スキル。月 1 の棚卸しで、lock の遅れ・外部スキルの更新・上位互換をまとめて点検する
 - **sync し忘れ**は別問題で、lefthook の pre-commit（`templates/lefthook.yml`）が防ぐ。`.rulesync/` や `rulesync.jsonc` をステージすると生成物が再生成されて同じコミットに入る
 
