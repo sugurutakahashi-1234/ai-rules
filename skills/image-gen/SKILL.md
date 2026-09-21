@@ -1,11 +1,19 @@
 ---
 name: image-gen
-description: "gpt-image-2（Codex 組み込み image_gen・ChatGPT サブスクルート）で画像を生成する共通エンジン。呼び出し規約・並列一括生成・ハマりどころの正本で、他の媒体スキルからも呼ばれる。Use when 画像・CG・挿絵・アイキャッチを作りたい、gpt-image で生成したいとき。"
+description: "gpt-image-2（Codex 組み込み image_gen・ChatGPT サブスクルート）で画像を生成する共通エンジン。呼び出し規約・並列一括生成・ハマりどころ・gpt-image-2.5（API 限定）との関係の正本で、他の媒体スキルからも呼ばれる。Use when 画像・CG・挿絵・アイキャッチを作りたい、gpt-image / Images 2.5 で生成したいとき。"
 ---
 
 # image-gen Skill（gpt-image-2 で画像を生成して images に置く）
 
 > **Core Principle**: 画像生成は **Codex の組み込み `image_gen`（gpt-image-2）** で行い、**ChatGPT サブスク内で完結させる（OpenAI API の従量課金ルートに入らない）**。生成した画像の置き場所・公開方法は各リポジトリの規約に従う。
+
+## モデルの現状（gpt-image-2 と gpt-image-2.5）
+
+- **本スキルが使うモデルは gpt-image-2**。Codex の組み込み `image_gen` はモデルを選べず（ツール引数は `prompt` / `referenced_image_paths` / `num_last_images_to_include` のみ）、Codex 公式ガイドも「Built-in image generation uses `gpt-image-2`」としている。Codex CLI のソースもモデル名を `gpt-image-2` に固定している
+- **gpt-image-2.5 は API 限定のモデル**（2026-09-08 公開。`gpt-image-2.5-flare` = 高速・日常用途の既定、`gpt-image-2.5-sunburst` = 編集精度重視・遅い）。OpenAI の発表は「Codex にも展開」としているが、Codex CLI の組み込みツールには 2.5 を指定する手段も、実際に使われたモデルを返す仕組みも無い（[openai/codex#43965](https://github.com/openai/codex/issues/43965)）。サーバー側で 2.5 に切り替わっている可能性はあるが確認できない。**「2.5 で生成して」と頼まれても、サブスクルートでは選べないし確認もできない**ことを伝え、本スキルの手順（gpt-image-2）で進める
+- **API ルート（従量課金）は本スキルの対象外**。ユーザーが「API 課金してよい」と明示したうえで 2.5 を指名した場合だけ例外で、その場合は OpenAI Images API を `gpt-image-2.5-flare`（または sunburst）で叩く。API の 2.5 は `background: transparent`（png / webp）・`quality` の `xhigh` / `max`・任意サイズ（辺は 16 の倍数・最大 3840px・縦横比 1:3〜3:1）に対応し、トークン単価は gpt-image-2 と同じ
+- **生成物のメタデータではモデルを判別できない**。C2PA の `softwareAgent` は API で `gpt-image-2.5-flare` を指名しても `gpt-image 2.0` と出る報告が複数あり、Codex 経由の生成物も版番号を持たない。「2.5 で作った」と断言する根拠にしない
+- **追従の目安**: Codex 側が組み込みツールにモデル選択か有効モデルの表示を付けたら（上記 issue の解決、または `codex` リリースノート / `codex-rs/ext/image-generation` の変更で確認）、この節と「gpt-image-2 の制約」を書き換える
 
 ## 置き場所と公開 URL（images/README.md の規約に従う）
 
@@ -57,9 +65,9 @@ codex exec --dangerously-bypass-approvals-and-sandbox --cd "<書き出し可能�
 - **`--cd` はリポジトリ実体に向けず、作業用スクラッチディレクトリ（/tmp のジョブディレクトリ等）を指定する**。codex はサンドボックス解除下で `--cd` 配下へ独自判断で画像を保存することがあり、リポジトリの images ディレクトリを `--cd` にすると**確定済みの画像ファイルを上書きする事故**が起きる。最終確認はスクラッチの候補ファイルではなく **images 配下の最終ファイルを `Read` で開いて行う**。
 - **保存・リネームはこちらのスクリプト側でやる。プロンプトに「./xx.png で保存して」と書かない** — Codex は指示しなくても気を利かせて独自の英語ファイル名で作業ディレクトリに保存することがあり、保存指示と二重になって重複ファイルが残る（残ったら消す）。プロンプト末尾に「生成した画像の絶対パスを最終メッセージで出力して」と頼むのは保存指示ではないので問題ない（並列一括生成のマッピングはこれを使う）。
 
-**gpt-image-2 の制約**:
-- 透過背景非対応（必要なら `gpt-image-1.5 + background transparent`）。
-- 辺は 16 の倍数、最大 3840px。横 1536 × 縦 1024（横長）・横 1024 × 縦 1536（縦長）が扱いやすい。
+**gpt-image-2 の制約**（組み込み `image_gen` で使えるモデル）:
+- 透過背景非対応。真の透過が必要なら API ルート（従量課金）の `gpt-image-2.5-flare` + `background: transparent` になるので、ユーザーに課金の可否を確認してから（「モデルの現状」参照。`gpt-image-1.5` に落とす理由はもう無い）。
+- 辺は 16 の倍数、最大 3840px。横 1536 × 縦 1024（横長）・横 1024 × 縦 1536（縦長）が扱いやすい。組み込みツールにはサイズ・quality の引数が無いので、縦横比や「高解像度で」はプロンプト内で指定する。
 
 ## 複数枚の並列一括生成
 
