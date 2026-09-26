@@ -45,7 +45,9 @@ export function inspect(project: string) {
     project: dir, repo, commonGit, remote: origin.code === 0 ? origin.out.trim() : null,
     dirty: git(repo, "status", "--porcelain", "--untracked-files=all") !== "",
     sources, locks,
-    rulesync: pkg.devDependencies?.rulesync ?? pkg.dependencies?.rulesync ?? null,
+    // 完全固定 + catalog 化したリポは `"catalog:"` で参照するので、ルートの workspaces.catalog から実際の版を引く
+    rulesync: ((spec: string | null) => spec === "catalog:" ? pkg.workspaces?.catalog?.rulesync ?? null : spec)(
+      pkg.devDependencies?.rulesync ?? pkg.dependencies?.rulesync ?? null),
     scripts: { rulesync: pkg.scripts?.rulesync ?? null, check: pkg.scripts?.["rulesync:check"] ?? null },
     config, pkg,
   };
