@@ -53,6 +53,17 @@ AI エージェントが依存を更新する運用では、**アプリケーシ
 - 移行は lockfile の解決済みの版をそのまま書き写す。入るものは 1 つも変わらないので低リスク。移行後は `bun update` を使わない（固定値を再解決しに行くだけで、待機中の版があるとエラーで止まる）。更新は catalog / `package.json` を編集して `bun install`
 - 意図的な据え置き（互換性待ちの pin）は版だけでは見分けられなくなる。理由と再開条件を Issue に残す
 
+## 道具の置き場（mise か package.json か）
+
+開発ツールを mise（`latest`）に置くか `package.json`（固定）に置くかは、**「CI がその道具を動かすか」**で決める。「開発環境 = latest / アプリの SDK = 固定」という区分は、「人が使う = latest / 機械が使う = 固定」と言い換えるとぶれない。
+
+- **CI が動かす道具 → `package.json` に固定。** CI は `setup-bun` + `bun install --frozen-lockfile` で動く。deploy パイプラインの道具が `latest` だと、誰も push していないのに道具の更新でデプロイが落ちる。lint / 型検査 / 生成物の drift 検知に使うもの（typescript / oxlint / oxfmt / knip / syncpack / commitlint / rulesync / dotenvx / clasp 等）はここ。版が変わると検査結果や生成物が変わるものは、名前が「道具」でも SDK として扱う
+- **人（と git hook）だけが使う道具 → mise で `latest`。** 壊れても手元で気づけるし、最新の恩恵をすぐ受けられる。terraform / gcloud / gh / aws-cli 等
+- **CI が mise-action 経由で動かす検査ツール（gitleaks / pinact / actionlint / shellcheck）は mise `latest` でよい。** 成果物に影響せず、落ちたら「新しい検知が増えた」で、それは知りたい情報
+- **同じ道具を両方に置くのは、人が素のコマンドで叩く実需があるときだけ。** 例: `dotenvx run -f .env.cli -- bun …` を人が打つリポでは mise にも置く。実需が無い重複は package.json 側に一本化する（`prepare: lefthook install` は `bun install` が `node_modules/.bin` を PATH に通すので npm 版で足りる）
+- **ランタイム（node 等）はメジャーだけ人が決めて固定し、マイナーは `latest`**（`node = "26"`）。`latest` にすると奇数の非 LTS メジャーへ勝手に飛び、CI の `setup-node` とズレる。メジャーを上げるときは全リポ一斉に変える
+- mise の `latest` は各マシンが `mise install` した時点で止まる（`mise.lock` が無ければ）。「latest のつもり」を保つには `mise up` を回す係が要る。これも「上げる係を置く」の一部
+
 ## 上げる
 
 AI エージェントが上げる時代の原則:
