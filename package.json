@@ -14,6 +14,6 @@
     "@commitlint/config-conventional": "^21.2.3",
     "@commitlint/types": "^21.2.3",
     "lefthook": "^2.1.14",
-    "rulesync": "^19.0.0"
+    "rulesync": "^20.0.0"
   }
 }
