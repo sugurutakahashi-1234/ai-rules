@@ -3,14 +3,17 @@
   "private": true,
   "scripts": {
     "prepare": "lefthook install",
+    "test": "bun test ./tests",
+    "rulesync:list": "bun skills/ai-rules-update/scripts/update.ts list",
+    "rulesync:update": "bun skills/ai-rules-update/scripts/update.ts update",
     "rulesync": "bunx rulesync generate",
     "rulesync:check": "bunx rulesync doctor --strict && bunx rulesync generate --check"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.2",
-    "@commitlint/config-conventional": "^21.2.2",
-    "@commitlint/types": "^21.2.0",
-    "lefthook": "^2.1.12",
-    "rulesync": "^16.33.0"
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@commitlint/types": "^21.2.3",
+    "lefthook": "^2.1.14",
+    "rulesync": "^19.0.0"
   }
 }

@@ -35,6 +35,7 @@
 | `md-to-pdf` | Markdown→PDF の 2 段変換手順 | |
 | `drawio-diagram` | draw.io 図の作成・書き出し・自己チェック | agents/references/scripts 同梱 |
 | `skills-review` | 導入済みスキルの棚卸し・追従の遅れ・上位互換の探索・提案表 | 月 1 の定期点検用。`scripts/inventory.sh` 同梱 |
+| `ai-rules-update` | 複数リポへの共有ルール・スキル・同梱スクリプトの反映、rulesync 本体の指定版更新 | 一覧・計画・適用のスクリプト同梱。差分を未コミットで残す |
 
 **派生（外部由来を改変して所有）**: `accessibility` / `core-web-vitals` / `web-quality-audit`（由来: addyosmani/web-quality-skills, MIT）、`seo-audit` / `ai-seo` / `schema` / `cro`（由来: coreyhaines31/marketingskills, MIT）、`web-design-guidelines`（由来: vercel-labs/web-interface-guidelines, MIT）。本文を大きく書き換えているため上流には追従しない。frontmatter の `source` / `forked_at` は由来の記録で、LICENSE を同梱し本文冒頭に由来を明記する。取り込む価値のある変更が上流に出ていないかは `skills-review` で点検する。
 
@@ -92,12 +93,24 @@ rulesync install --update && rulesync generate
 ```
 
 - このリポジトリを変更したら main に push するだけでよい。タグは切らない
-- 複数リポジトリを一度に上げるなら、clone を横断して同じことをするスクリプトを 1 本持つとよい（dirty なリポジトリはスキップし、lock と上流 HEAD の差を先に見られる形にする）。rulesync はリポジトリの境界で止まる設計で、この横断は利用側が持つ。定期実行の CI で `install --update` して PR を開くのも正当な使い方
+- 複数リポジトリを一度に上げるなら、更新を管理するリポの `sources` に `skills: ["ai-rules-update"]` を追加する。[ai-rules-update](skills/ai-rules-update/SKILL.md) が対象の一覧確認と一括取得・生成・検証を担い、AI が差分レビューと個別対応を行う。配布元の変更は push 後に取得する。スクリプトは dirty なリポを除外し、コミット・push は行わない。既存の組織別一括更新がある場合は対象台帳を活かし、同じリポに両方を重ねて実行しない
+- rulesync はリポジトリの境界で止まる設計で、この横断は利用側が持つ。定期実行の CI で `install --update` して PR を開くのも正当な使い方
 - `install --update` は取得内容が変わらなくても lock の `resolvedAt` を書き換える。「変更があったか」は `git diff --quiet -I '"resolvedAt"' -- rulesync.lock` のように `resolvedAt` を除いて見る（Git 2.30 以上）
 - lock が上流からどれだけ遅れているかを読み取り専用で出す公式コマンドはまだない。lock の `resolvedRef` と上流 HEAD を自分で突合する（上流 issue [#2983](https://github.com/dyoshikawa/rulesync/issues/2983) で提案中）
 - この節の運用は rulesync 公式 FAQ の [How do I keep many repositories in sync with a shared source?](https://rulesync.dyoshikawa.com/faq#how-do-i-keep-many-repositories-in-sync-with-a-shared-source) と同じ
 - 追従忘れの受け皿は `skills-review` スキル。月 1 の棚卸しで、lock の遅れ・外部スキルの更新・上位互換をまとめて点検する
 - **sync し忘れ**は別問題で、lefthook の pre-commit（`templates/lefthook.yml`）が防ぐ。`.rulesync/` や `rulesync.jsonc` をステージすると生成物が再生成されて同じコミットに入る
+
+一括更新をよく使うリポでは、導入済みスキルを scripts から呼べる。以下は `codexcli` 向けの生成先を使う例（Claude Code のみなら `.claude/skills/` に読み替える）。
+
+```jsonc
+"scripts": {
+  "rulesync:list": "bun .agents/skills/ai-rules-update/scripts/update.ts list",
+  "rulesync:update": "bun .agents/skills/ai-rules-update/scripts/update.ts update"
+}
+```
+
+`bun run rulesync:list --root /path/to/repos` で棚卸しし、`bun run rulesync:update --project /path/to/repo --sources` で計画を見る。実行は `--apply` を追加する。`--sources` はそのプロジェクトの全 sources を更新する。本体の指定版更新は `--rulesync-version X.Y.Z`。対応構成と個別対応が必要な場合はスキル本文を参照。
 
 ## templates/ — rulesync では配布できないもの
 
