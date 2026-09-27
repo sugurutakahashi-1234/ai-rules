@@ -2,6 +2,7 @@
 root: false
 targets: ["*"]
 description: "依存の扱い（公開直後を避ける・待機を貫通する判断・版の完全固定と catalog・道具を mise と package.json のどちらに置くか・AI が上げる時代の原則・更新 bot を入れるかの判断・直せない脆弱性の扱い）"
+globs: ["**/package.json", "**/bunfig.toml", "**/bun.lock", "**/pnpm-lock.yaml", "**/pnpm-workspace.yaml", "**/package-lock.json", "**/mise.toml", "**/.mise.toml", "**/mise.lock", ".github/dependabot.yml", ".github/workflows/**", "renovate.json*", ".renovaterc*"]
 ---
 
 # 依存の扱い
