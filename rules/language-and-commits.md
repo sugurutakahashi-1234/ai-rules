@@ -6,8 +6,8 @@ description: "言語の使い分けとコミットメッセージ規約"
 
 # 言語とコミット
 
-- 議論・コードコメント・ドキュメントは**日本語**で書く。
-- コミットメッセージは **type が英語小文字・subject と body は日本語**。
+- 議論・コードコメント・ドキュメントは日本語で書く。
+- コミットメッセージは type が英語小文字・subject と body は日本語。
   - 形式: `type(scope): 日本語の subject`（scope は任意）
   - 許容 type は標準語彙 `feat` / `fix` / `docs` / `style` / `refactor` / `perf` / `test` / `build` / `ci` / `chore` / `revert` / `improve`（Conventional Commits 準拠 + improve。sugurutakahashi-1234/ai-rules の `templates/commitlint.config.ts` が正）。release-please 等のリリース自動化がこの語彙に依存するため勝手に増減しない
   - そのリポジトリの commitlint 設定（`commitlint.config.*` の `type-enum`）が標準と異なる場合はリポジトリ側の設定に従う
