@@ -13,16 +13,18 @@
 
 | ルール | globs | 内容 |
 |---|---|---|
-| `git-safety` | なし（常時） | 破壊的な git 操作の禁止 |
+| `git-safety` | なし（常時） | 取り消せない・他人に見える git 操作の境界。確実に止めるなら `templates/claude-settings.json` と併用 |
 | `secret-safety` | なし（常時） | シークレット検知で止まったときの作法（回避せず値を無効化する） |
 | `language-and-commits` | なし（常時） | 日本語の使い分けとコミット規約（type 英語・subject 日本語） |
-| `code-conventions` | `**/*` | コーディング規約（コメントは WHY のみ、UTC/JST 等） |
+| `code-conventions` | `**/*` | コーディング規約（変更の範囲を広げない・コメントは WHY のみ・UTC/JST 等） |
 | `japanese-writing` | `**/*.md` | 日本語の文体規範。AI 生成文に出やすい癖（空虚な形容・予告・対句・翻訳調）の禁止 |
 | `github-actions` | `.github/workflows/**` | ワークフローの制約（SHA ピン・skip の扱い・デプロイのゲート） |
 | `dependency-hygiene` | なし（常時） | 依存の扱い（公開直後を避ける・更新 bot の判断・直せない脆弱性） |
-| `skill-layering` | スキル関連 | スキル・ルールを新設するときの置き場所判断（知見の集約先） |
+| `skill-layering` | スキル関連 | スキル・ルールの置き場所判断と、今のモデル向けの書き方（強調語を使わない・理由を書く・ハーネスと重ねない） |
 
 `globs` 付きのルールは、該当ファイルを読み書きするまで読み込まれない。常時効かせたいものには `globs` を書かない。
+
+ルールもスキルも 2026-09 時点のモデル（Claude Opus 5.5 / Fable 5.1、GPT-6 Astra）向けに書いている。目的と境界と落とし穴を書き、段取りは書かない。`CRITICAL` / 「必ず」のような強調語は使わず、理由を添える。ハーネスとモデルが既に持つ振る舞い（検証・テスト実行・進捗報告）は重ねない。前世代向けに足した足場が残っていないかは `skills-review` で棚卸しする。方針の正本は `skill-layering` ルールの「書き方」節。
 
 ## スキル
 
@@ -119,6 +121,7 @@ git フック等の設定ファイルは rulesync の管轄外（rulesync が扱
 - `templates/lefthook.yml` — commit-msg で commitlint、pre-commit で rulesync 自動 sync。任意で textlint。**既存の lefthook.yml があるリポジトリでは上書きせずマージする**
 - `templates/commitlint.config.ts` — `language-and-commits` ルールと対をなす commitlint 設定（既存設定があるリポジトリはそちらを正とする）
 - `templates/.textlintrc.json` — `japanese-writing` ルールと対をなす textlint 設定（どのルールを切るかはファイル内のコメント参照）
+- `templates/claude-settings.json` — `git-safety` ルールと対をなす Claude Code の permissions（破壊的操作の `deny` のみ。push は確認を挟まない）。ルールは文脈であって強制ではないので、破壊的な git 操作を確実に止めたいリポジトリでは `.claude/settings.json` にマージする。`deny` はどの permission mode でも効く。コマンド前置パターンは `git -C . push` のような別形を拾えないので、それも塞ぐなら `PreToolUse` hook を足す
 
 ```bash
 bun add -d lefthook @commitlint/cli @commitlint/config-conventional @commitlint/types

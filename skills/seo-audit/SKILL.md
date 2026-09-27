@@ -1,6 +1,6 @@
 ---
 name: seo-audit
-description: When the user wants to audit, review, or diagnose SEO issues on the site. Also use when the user mentions "SEO audit," "technical SEO," "why am I not ranking," "SEO issues," "on-page SEO," "meta tags review," "SEO health check," "my traffic dropped," "lost rankings," "not showing up in Google," "page speed," "core web vitals," "crawl errors," or "indexing issues." Use this even for vague requests such as "my SEO is bad"; start with an audit. For adding structured data, see schema. For AI search optimization, see ai-seo.
+description: Audit and diagnose technical and on-page SEO issues on a site. Use when asked for an "SEO audit", "why am I not ranking", "traffic dropped", "not showing up in Google", "crawl or indexing issues", or a vague "my SEO is bad" (start with an audit). For structured data see schema; for AI search visibility see ai-seo.
 metadata:
   local_reviewed: 2026-09-08
   version: 2.0.0

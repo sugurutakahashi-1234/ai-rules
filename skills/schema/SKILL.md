@@ -1,6 +1,6 @@
 ---
 name: schema
-description: When the user wants to add, fix, or optimize schema markup and structured data on their site. Also use when the user mentions "schema markup," "structured data," "JSON-LD," "rich snippets," "schema.org," "FAQ schema," "product schema," "review schema," "breadcrumb schema," "Google rich results," "knowledge panel," "star ratings in search," or "add structured data." Use this whenever someone wants their pages to show enhanced results in Google. For broader SEO issues, see seo-audit. For AI search optimization, see ai-seo.
+description: Add, fix, or optimize schema.org structured data (JSON-LD) for rich results in Google. Use when asked about "schema markup", "structured data", "JSON-LD", "rich snippets", FAQ/product/review/breadcrumb schema, or "star ratings in search". For broader SEO issues see seo-audit; for AI search see ai-seo.
 metadata:
   local_reviewed: 2026-09-08
   version: 2.0.0

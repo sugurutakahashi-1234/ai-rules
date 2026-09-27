@@ -1,6 +1,6 @@
 ---
 name: cro
-description: "When the user wants to optimize, improve, or increase conversions on a marketing page or contact form — including the homepage, service pages, lead capture pages, or consultation forms. Also use when the user says 'CRO,' 'conversion rate optimization,' 'this page isn't converting,' 'improve conversions,' 'form abandonment,' 'low conversion rate,' or shares a URL and asks why the page is not working."
+description: Analyze a marketing page or lead/contact form and recommend changes that raise conversion rate. Use when asked for "CRO", "this page is not converting", "improve conversions", "form abandonment", or when a URL is shared with "why is this page not working".
 metadata:
   version: 2.0.0
   source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/cro
