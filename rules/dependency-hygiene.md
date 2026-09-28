@@ -60,7 +60,7 @@ AI エージェントが依存を更新する運用では、アプリケーシ�
 
 - **CI が動かす道具 → `package.json` に固定。** CI は `setup-bun` + `bun install --frozen-lockfile` で動く。deploy パイプラインの道具が `latest` だと、誰も push していないのに道具の更新でデプロイが落ちる。lint / 型検査 / 生成物の drift 検知に使うもの（typescript / oxlint / oxfmt / knip / syncpack / commitlint / rulesync / dotenvx / clasp 等）はここ。版が変わると検査結果や生成物が変わるものは、名前が「道具」でも SDK として扱う
 - **人（と git hook）だけが使う道具 → mise で `latest`。** 壊れても手元で気づけるし、最新の恩恵をすぐ受けられる。terraform / gcloud / gh / aws-cli 等
-- **CI が mise-action 経由で動かす検査ツール（gitleaks / pinact / actionlint / shellcheck）は mise `latest` でよい。** 成果物に影響せず、落ちたら「新しい検知が増えた」で、それは知りたい情報
+- **CI が mise-action 経由で動かす検査ツール（gitleaks / pinact / actionlint / shellcheck）は mise `latest` でよい。** 成果物に影響せず、落ちたら「新しい検知が増えた」で、それは知りたい情報。ただし mise-action には `install_args` で使う道具だけを指定し、`mise.toml` 全体を CI に持ち込まない。全部入れると、検査と無関係なツール（azure-cli 等）の導入失敗で検査が赤くなる
 - **同じ道具を両方に置くのは、人が素のコマンドで叩く実需があるときだけ。** 例: `dotenvx run -f .env.cli -- bun …` を人が打つリポでは mise にも置く。実需が無い重複は package.json 側に一本化する（`prepare: lefthook install` は `bun install` が `node_modules/.bin` を PATH に通すので npm 版で足りる）
 - **ランタイム（node 等）はメジャーだけ人が決めて固定し、マイナーは `latest`**（`node = "26"`）。`latest` にすると奇数の非 LTS メジャーへ勝手に飛び、CI の `setup-node` とズレる。メジャーを上げるときは全リポ一斉に変える
 - mise の `latest` は各マシンが `mise install` した時点で止まる（`mise.lock` が無ければ）。「latest のつもり」を保つには `mise up` を回す係が要る。これも「上げる係を置く」の一部
