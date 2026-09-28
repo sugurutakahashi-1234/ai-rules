@@ -21,7 +21,7 @@ description: "draw.io Desktop CLI で編集可能な .drawio 正本と埋め込�
 `.drawio` 正本と `.svg` 生成物の 2 ファイルを、掲載先リポジトリの資産規約に従ったディレクトリへ対で保存する（例: スライドなら `assets/slides/<デッキ slug>/<図名>.drawio` と同名の `.svg`、HTML ページなら `assets/htmls/<原稿 slug>/`）。
 
 - `.drawio` だけ、または SVG だけを残さない。修正可能性とビルド再現性の両方を保つ
-- ブログ記事でクロスポストを想定する場合は PNG 書き出しも対で置く
+- 掲載先で形式を選ぶ。Marp スライドと HTML は SVG、GitHub issue・Slack・ブログのクロスポスト先のように SVG が表示されないか縮小される場所は PNG を書き出す（`.drawio` 正本は共通）
 - 生成画像素材（`images/` 等）の置き場所には置かない。draw.io 図は個別デッキ・個別ページの制作素材
 - ファイル名は内容が分かる英語ケバブケースにする
 

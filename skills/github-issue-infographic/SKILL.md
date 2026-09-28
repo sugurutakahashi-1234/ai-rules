@@ -1,11 +1,11 @@
 ---
 name: github-issue-infographic
-description: "GitHub issue の本文を変えずに、各章冒頭へ手書き風インフォグラフィック画像（gpt-image-2 生成）を差し込む。画像はリポジトリにコミットして raw URL で参照する。Use when issue に章ごとの図解・イラストを入れて見やすくしたいとき。ローカル Markdown なら md-infographic。前提として image-gen を併せて導入する。"
+description: "GitHub issue の本文を変えずに、各章冒頭へ手書き風インフォグラフィック画像（gpt-image-2 生成）を差し込む。画像は `gh issue edit --attach` で issue の添付として上げる（リポジトリに画像を置かない）。Use when issue に章ごとの図解・イラストを入れて見やすくしたいとき。ローカル Markdown なら md-infographic。前提として image-gen を併せて導入する。"
 ---
 
 # github-issue-infographic（GitHub issue にインフォグラフィックを差し込む）
 
-issue の Markdown 本文（文章・表・コードブロック）は変えず、各章の見出し直後に「読む前の地図」となる 1 枚絵を差し込む。GitHub の issue 本文は HTML をサニタイズして `<style>`・class・インライン CSS を落とすので、CSS で組んだ図解は表示されない。表示できるのは画像・Mermaid・テーブル・`> [!NOTE]` アラート程度で、リッチな図解は画像化して raw URL で参照するのが唯一確実な経路。
+issue の Markdown 本文（文章・表・コードブロック）は変えず、各章の見出し直後に「読む前の地図」となる 1 枚絵を差し込む。GitHub の issue 本文は HTML をサニタイズして `<style>`・class・インライン CSS を落とすので、CSS で組んだ図解は表示されない。表示できるのは画像・Mermaid・テーブル・`> [!NOTE]` アラート程度で、リッチな図解は画像化して issue に添付するのが唯一確実な経路。
 
 呼び出し規約（Codex 経由・課金回避・`< /dev/null`・並列一括生成・生成後の確認）は image-gen が正本で、ここには issue 版固有のことだけを書く。食い違ったら image-gen を優先する。
 
@@ -14,15 +14,14 @@ issue の Markdown 本文（文章・表・コードブロック）は変えず�
 GitHub の読み書きは `gh` CLI（ローカル認証済み）だけで行う。GitHub MCP コネクタはプライベートリポジトリで 404 を返して読めないことがあるので、失敗してからフォールバックするのではなく最初から `gh` を使う。
 
 1. `gh issue view <N> --repo <owner>/<repo> --json number,title,body` で本文を取る。`##` 見出しを章とみなし、既定では各章に 1 枚。冒頭の注記だけの章は外してよい
-2. 代表的な 1 枚（フロー章か表章）を試作してトーン・密度・タイトル感を合わせ、残りを並列で一括生成する。確定した画像を `docs/assets/issue-<N>/<NN>-<slug>.png` 相当（リポジトリの資産規約に従う）へコピーする
-3. 各章見出しの直後に `![<alt>](<raw URL>)` を 1 行入れる。alt は内容の要約
-4. 画像を先に commit / push してから `gh issue edit <N> --body-file <tmp>` で本文を更新する。raw URL は `main` 上の画像を指すので、逆順だと一瞬リンク切れになる。commit / push はユーザーの指示があってから
+2. 代表的な 1 枚（フロー章か表章）を試作してトーン・密度・タイトル感を合わせ、残りを並列で一括生成する。確定した画像は作業用ディレクトリ（`.tmp/issue-<N>/<NN>-<slug>.png` 等、コミットしない場所）に集める
+3. 各章見出しの直後に `![<alt>](./<NN>-<slug>.png)` を 1 行入れる。alt は内容の要約。相対パスは `--attach` が添付先の URL へ書き換える
+4. `gh issue edit <N> --body-file <tmp> --attach '<path>#<alt>'`（画像ごとに `--attach` を繰り返す。1 コマンド 50 件まで、gh 2.100.0 以降）で本文と添付を一度に更新する。本文の相対参照は添付先へ書き換えられ、リポジトリに画像を置かないので commit / push は要らない
 
 ## 画像の置き場所と参照
 
-- ファイル名: `<章番号 2 桁>-<英語 slug>.png`（例 `03-project-lifecycle.png`）
-- 参照 URL: `https://github.com/<owner>/<repo>/raw/main/docs/assets/issue-<N>/<NN>-<slug>.png`
-- GitHub は画像を camo proxy でキャッシュする。同名で中身だけ差し替えると古い絵が出続けることがあるので、作り直すときはファイル名を変えて URL を変える
+- ファイル名: `<章番号 2 桁>-<英語 slug>.png`（例 `03-project-lifecycle.png`）。添付後は GitHub 側の asset URL に置き換わるので、作り直すときはもう一度 `--attach` する
+- 画像をリポジトリに残したい事情があるとき（資料と一緒に版管理したい等）だけ、`docs/assets/issue-<N>/` に置いて commit / push し、`https://github.com/<owner>/<repo>/raw/main/...` で参照する。この場合は画像を push してから本文を更新する（逆順だと一瞬リンク切れになる）。GitHub は画像を camo proxy でキャッシュするので、差し替えはファイル名を変える
 
 ## スタイル定型（プロンプト冒頭に貼る）
 
@@ -64,7 +63,7 @@ GitHub の読み書きは `gh` CLI（ローカル認証済み）だけで行う�
 ```markdown
 ## 全体の流れ（案件 1 件のライフサイクル）
 
-![全体の流れ：①案件決定→②管理者確認→③契約台帳反映→…→⑦消込。担当はスタッフ/管理者/自動で色分け](https://github.com/<owner>/<repo>/raw/main/docs/assets/issue-4/03-project-lifecycle.png)
+![全体の流れ：①案件決定→②管理者確認→③契約台帳反映→…→⑦消込。担当はスタッフ/管理者/自動で色分け](./03-project-lifecycle.png)
 
 ① 案件が決まる …（既存本文はそのまま）
 ```
@@ -74,5 +73,5 @@ GitHub の読み書きは `gh` CLI（ローカル認証済み）だけで行う�
 - 本文の文章・表・コードブロック・リンクを書き換えない（差し込むのは画像行だけ）
 - HTML/CSS で図を組んで issue に貼らない（レンダリングされない）
 - イラストのみで文字を入れない作り方をしない（読めない絵になり、全差し替えになった失敗がある）
-- 画像を push する前に issue 本文を更新しない（リンク切れになる）
+- raw URL 方式を選んだときは、画像を push する前に issue 本文を更新しない（リンク切れになる）
 - 大量の章を確認なしに一括生成しない。1 枚合意してからバッチ
