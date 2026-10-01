@@ -31,7 +31,7 @@
 
 | スキル | 内容 | 備考 |
 |---|---|---|
-| `design-compare` | デザイン案・構成案・文言案の比較モック、レビュー指摘の選択票、一括適用後の変更履歴ビューを 1 枚の HTML にして判断してもらう | `assets/` に雛形 3 つ同梱 |
+| `design-compare` | デザイン案・構成案・文言案の比較モック、レビュー指摘の選択票、点検で見つけた問題の報告、一括適用後の変更履歴ビューを 1 枚の HTML にして判断してもらう | `assets/` に雛形 4 つ同梱 |
 | `image-gen` | Codex 経由 gpt-image-2 の呼び出し規約・並列一括生成 | `scripts/parallel-imggen.sh` 同梱 |
 | `md-infographic` | 章扉インフォグラフィックのスタイル定型 | **前提: `image-gen` も併せて導入** |
 | `github-issue-infographic` | GitHub issue へのインフォグラフィック差し込み | **前提: `image-gen` も併せて導入** |
