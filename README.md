@@ -49,7 +49,7 @@
 **他人のスキルはここにコピーしない。** 消費側の `sources` に上流リポを直接書き、追従は rulesync に任せる。本文に手を入れたくなったら、コピーして上の「派生」として所有する。中途半端に「コピーして少し直した」状態を残さない。
 
 ```jsonc
-{ "source": "coji/natural-japanese", "skills": ["natural-japanese"] }
+{ "source": "cloudflare/skills", "skills": ["workers-best-practices"] }
 ```
 
 ### よく使う外部 source
@@ -58,12 +58,7 @@
 
 | スキル | 上流 | 選ぶリポジトリ | ライセンス |
 |---|---|---|---|
-| `natural-japanese` | coji/natural-japanese | 日本語の文章を書くリポジトリ | MIT |
 | `workers-best-practices` | cloudflare/skills | Cloudflare Workers を使うリポジトリ（`wrangler.toml` / `wrangler.jsonc` がある）。Workers の API・設定の現在の推奨を補う。リポジトリ側で意図的に外している推奨（`nodejs_compat` を入れない等）は、そのリポジトリのルールに 1 行書けばそちらが勝つ | Apache-2.0 |
-
-```jsonc
-{ "source": "cloudflare/skills", "skills": ["workers-best-practices"] }
-```
 
 ## 使い方
 
