@@ -15,6 +15,7 @@
 |---|---|---|
 | `git-safety` | なし（常時） | 取り消せない・他人に見える git 操作の境界。確実に止めるなら `templates/claude-settings.json` と併用 |
 | `secret-safety` | なし（常時） | シークレット検知で止まったときの作法（回避せず値を無効化する） |
+| `env-secrets` | `**/.env*` 等 | 環境変数と秘密の置き場所（.env は dotenvx で暗号化してコミット、実値は保管庫に置き参照で書く） |
 | `language-and-commits` | なし（常時） | 日本語の使い分けとコミット規約（type 英語・subject 日本語） |
 | `code-conventions` | `**/*` | コーディング規約（変更の範囲を広げない・コメントは WHY のみ・UTC/JST 等） |
 | `japanese-writing` | `**/*.md` | 日本語の文体規範。AI 生成文に出やすい癖（空虚な形容・予告・対句・翻訳調）の禁止 |
