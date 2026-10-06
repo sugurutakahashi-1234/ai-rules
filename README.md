@@ -24,6 +24,7 @@
 | `browser-tooling` | なし（常時） | ブラウザ作業の道具の選び方（ログインが要る操作はユーザーの Chrome、自サイトの検証は内蔵ブラウザ、外部 Playwright MCP は使わない） |
 | `output-style` | なし（常時） | 回答の形。結論と次の行動を先に、手順は番号付き、一覧は 5 項目まで、前置き・締めの挨拶なし（ayghri/i-have-adhd 由来） |
 | `voice-input` | なし（常時） | 音声入力のプロンプトの読み方（誤変換を字面どおりに受け取らず、文脈から意図を解釈する） |
+| `rulesync-freshness` | なし（常時） | 取り込んだルール・スキルの遅れに気づく（Claude Code は SessionStart hook `templates/hooks/rulesync-outdated.sh`、他は lock の取得日で判断し、最初の返答で 1 行知らせる） |
 
 `globs` 付きのルールは、該当ファイルを読み書きするまで読み込まれない。常時効かせたいものには `globs` を書かない。
 
@@ -125,6 +126,7 @@ git フック等の設定ファイルは rulesync の管轄外（rulesync が扱
 - `templates/commitlint.config.ts` — `language-and-commits` ルールと対をなす commitlint 設定（既存設定があるリポジトリはそちらを正とする）
 - `templates/.textlintrc.json` — `japanese-writing` ルールと対をなす textlint 設定（どのルールを切るかはファイル内のコメント参照）
 - `templates/claude-settings.json` — `git-safety` ルールと対をなす Claude Code の permissions（破壊的操作の `deny` のみ。push は確認を挟まない）。ルールは文脈であって強制ではないので、破壊的な git 操作を確実に止めたいリポジトリでは `.claude/settings.json` にマージする。`deny` はどの permission mode でも効く。コマンド前置パターンは `git -C . push` のような別形を拾えないので、それも塞ぐなら `PreToolUse` hook を足す
+- `templates/hooks/rulesync-outdated.sh` — `rulesync-freshness` ルールと対をなす SessionStart hook。cwd の `rulesync.lock` の各 source を GitHub の compare API で上流と比べ、遅れている source だけ 1 行ずつ出す（遅れがなければ無言。gh・jq・ネットワークが無ければ黙って終わる）。マシンの PATH（例: `~/.local/bin`）に置き、`~/.claude/settings.json` の `hooks.SessionStart` から呼ぶ。配置はマシン設定リポジトリ（mac-setup）の仕事
 
 ```bash
 bun add -d lefthook @commitlint/cli @commitlint/config-conventional @commitlint/types
