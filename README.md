@@ -42,6 +42,7 @@
 | `drawio-diagram` | draw.io 図の作成・書き出し・自己チェック | agents/references/scripts 同梱 |
 | `skills-review` | 導入済みスキルの棚卸し・追従の遅れ・上位互換の探索・提案表 | 月 1 の定期点検用。`scripts/inventory.sh` 同梱 |
 | `ai-rules-update` | 複数リポへの共有ルール・スキル・同梱スクリプトの反映、rulesync 本体の指定版更新 | 一覧・計画・適用のスクリプト同梱。差分を未コミットで残す |
+| `ai-rules-setup` | リポジトリの目的と構成を読んで、ここから何を選ぶか（rules / skills / templates / 会社層）を理由付きの表で提案し、承認後に書き込んで install / generate / check まで行う | 新しいリポジトリに入れる・既存リポジトリに足すときの入口。rulesync が無い場所で使うのでグローバル導入が前提 |
 
 **派生（外部由来を改変して所有）**: `accessibility` / `core-web-vitals` / `web-quality-audit`（由来: addyosmani/web-quality-skills, MIT）、`seo-audit` / `ai-seo` / `schema` / `cro`（由来: coreyhaines31/marketingskills, MIT）、`web-design-guidelines`（由来: vercel-labs/web-interface-guidelines, MIT）。本文を大きく書き換えているため上流には追従しない。frontmatter の `source` / `forked_at` は由来の記録で、LICENSE を同梱し本文冒頭に由来を明記する。取り込む価値のある変更が上流に出ていないかは `skills-review` で点検する。
 
@@ -51,9 +52,24 @@
 { "source": "coji/natural-japanese", "skills": ["natural-japanese"] }
 ```
 
+### よく使う外部 source
+
+ここから配るものではないが、消費側の `sources` に並べる候補としてよく出てくるもの。該当する技術を使うリポジトリだけが選ぶ。lock 固定と一括更新（`ai-rules-update --sources`）はここのスキルと同じに効く。
+
+| スキル | 上流 | 選ぶリポジトリ | ライセンス |
+|---|---|---|---|
+| `natural-japanese` | coji/natural-japanese | 日本語の文章を書くリポジトリ | MIT |
+| `workers-best-practices` | cloudflare/skills | Cloudflare Workers を使うリポジトリ（`wrangler.toml` / `wrangler.jsonc` がある）。Workers の API・設定の現在の推奨を補う。リポジトリ側で意図的に外している推奨（`nodejs_compat` を入れない等）は、そのリポジトリのルールに 1 行書けばそちらが勝つ | Apache-2.0 |
+
+```jsonc
+{ "source": "cloudflare/skills", "skills": ["workers-best-practices"] }
+```
+
 ## 使い方
 
 各リポジトリの `rulesync.jsonc` に `sources` を書く。参照にタグは付けず、デフォルトブランチを追う。固定は `rulesync.lock`（commit SHA と sha256）が担う。
+
+何を選ぶかは [ai-rules-setup](skills/ai-rules-setup/SKILL.md) が、リポジトリの目的と構成（言語・workflows・lockfile・文書の量・GitHub org）から表で提案する。手で選ぶなら下の例から始める。
 
 ```jsonc
 {
