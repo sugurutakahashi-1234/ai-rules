@@ -40,7 +40,7 @@
 | `github-issue-infographic` | GitHub issue へのインフォグラフィック差し込み | **前提: `image-gen` も併せて導入** |
 | `md-to-pdf` | Markdown→PDF の 2 段変換手順 | |
 | `drawio-diagram` | draw.io 図の作成・書き出し・自己チェック | agents/references/scripts 同梱 |
-| `skills-review` | 導入済みスキルの棚卸し・追従の遅れ・上位互換の探索・提案表 | 月 1 の定期点検用。`scripts/inventory.sh` 同梱 |
+| `skills-review` | 導入済みスキルの棚卸し・追従の遅れ・上位互換の探索・提案表 | モデルを変えたとき・hook が遅れを出したとき・スキルの発火がおかしいときに呼ぶ。`scripts/inventory.sh` 同梱 |
 | `ai-rules-update` | 複数リポへの共有ルール・スキル・同梱スクリプトの反映、rulesync 本体の指定版更新 | 一覧・計画・適用のスクリプト同梱。差分を未コミットで残す |
 | `ai-rules-setup` | リポジトリの目的と構成を読んで、ここから何を選ぶか（rules / skills / templates / 会社層）を理由付きの表で提案し、承認後に書き込んで install / generate / check まで行う | 新しいリポジトリに入れる・既存リポジトリに足すときの入口。rulesync が無い場所で使うのでグローバル導入が前提 |
 
@@ -115,7 +115,7 @@ rulesync install --update && rulesync generate
 - `install --update` は取得内容が変わらなくても lock の `resolvedAt` を書き換える。「変更があったか」は `git diff --quiet -I '"resolvedAt"' -- rulesync.lock` のように `resolvedAt` を除いて見る（Git 2.30 以上）
 - lock が上流からどれだけ遅れているかを読み取り専用で出す公式コマンドはまだない。lock の `resolvedRef` と上流 HEAD を自分で突合する（上流 issue [#2983](https://github.com/dyoshikawa/rulesync/issues/2983) で提案中）
 - この節の運用は rulesync 公式 FAQ の [How do I keep many repositories in sync with a shared source?](https://rulesync.dyoshikawa.com/faq#how-do-i-keep-many-repositories-in-sync-with-a-shared-source) と同じ
-- 追従忘れの受け皿は `skills-review` スキル。月 1 の棚卸しで、lock の遅れ・外部スキルの更新・上位互換をまとめて点検する
+- 追従忘れの受け皿は 2 つ。SessionStart hook（`templates/hooks/rulesync-outdated.sh`）が作業ディレクトリの遅れをセッション開始に出し、`skills-review` スキルがモデルを変えたとき・スキルの発火がおかしいときに lock の遅れ・外部スキルの更新・上位互換をまとめて点検する。カレンダーの定期点検は置かない（引き金のない点検は義務だけが残る）
 - **sync し忘れ**は別問題で、lefthook の pre-commit（`templates/lefthook.yml`）が防ぐ。`.rulesync/` や `rulesync.jsonc` をステージすると生成物が再生成されて同じコミットに入る
 
 一括更新をよく使うリポでは、導入済みスキルを scripts から呼べる。以下は `codexcli` 向けの生成先を使う例（Claude Code のみなら `.claude/skills/` に読み替える）。

@@ -36,7 +36,7 @@ ai-rules はメニューで、何を取るかは消費側が決める。この�
 | `web-quality-audit` `accessibility` `core-web-vitals` `web-design-guidelines` | 公開 Web サイト・フロント | 派生スキル群。サイトでなければ発火場面がない |
 | `seo-audit` `ai-seo` `schema` `cro` | 集客する公開サイト | 社内ツールには不要 |
 | `ai-rules-update` | 複数リポジトリの ai-rules を束ねて上げるリポジトリ（マシン設定リポジトリなど 1 か所） | |
-| `skills-review` | 定期点検を回すリポジトリ（1 か所） | 月 1 の棚卸し。方々に入れると台帳が割れる |
+| `skills-review` | 点検を回すリポジトリ（1 か所） | モデルを変えたとき・hook が遅れを出したときの棚卸し。方々に入れると台帳が割れる |
 
 templates は rulesync で配れないので実ファイルをコピーする。
 
