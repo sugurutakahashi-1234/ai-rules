@@ -82,6 +82,7 @@
 ```
 
 - `rulesync install` は lock 通りに取得する（初回は HEAD を解決して lock に書く）。`rules` / `skills` の選定を広げた分は `install` だけで取得される（lock の ref にある範囲。上流に push したばかりのものは lock の ref に無いので黙って取得されない。`--update` で ref を進める）。広げたまま `install` していない状態は `--frozen` が検出する（rulesync 16.28.0 以上。それより前は選定を広げても `install` が黙って無視し、`--frozen` も通ってしまった）
+- `.rulesync/` 配下を直しただけなら `rulesync generate` だけでよい（取得済みの `.curated/` を使うのでオフラインで数秒）。`install` を回すのは `rulesync.jsonc` の sources や選定を変えたときだけで、`rulesync:check` はコミット前に 1 回。`templates/lefthook.yml` の pre-commit が生成物を再生成して同じコミットに入れるので、編集してコミットするだけでも足りる
 - 戻したいときは lock を revert する。タグは切らない
 
 呼び出しは `package.json` の scripts に置く。**名前はこの 2 つで揃える**（CI・lefthook・スキル本文から参照されるため、リポジトリごとに変えない）。中身が複数コマンドの合成なので、`generate` や `doctor` のような個別コマンド名は使わない——検査を足したときに名前が嘘になる。
