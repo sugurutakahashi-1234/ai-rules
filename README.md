@@ -45,10 +45,11 @@
 | `skills-review` | 導入済みスキルの棚卸し・追従の遅れ・上位互換の探索・提案表 | モデルを変えたとき・hook が遅れを出したとき・スキルの発火がおかしいときに呼ぶ。`scripts/inventory.sh` 同梱 |
 | `ai-rules-update` | 複数リポへの共有ルール・スキル・同梱スクリプトの反映、rulesync 本体の指定版更新、スキル・ルールの利用リポジトリの逆引き | 一覧・逆引き・計画・適用のスクリプト同梱。差分を未コミットで残す |
 | `ai-rules-setup` | リポジトリの目的と構成を読んで、ここから何を選ぶか（rules / skills / templates / 会社層）を理由付きの表で提案し、承認後に書き込んで install / generate / check まで行う | 新しいリポジトリに入れる・既存リポジトリに足すときの入口。rulesync が無い場所で使うのでグローバル導入が前提 |
+| `motion-video` | 題材（README・サイト・プロフィールなど）から 30 秒前後のモーショングラフィックス動画を作るときの聞き出し・テイストの散らし方（構成 × 見た目の棚から、履歴と被らない 3 案を種付きで引く）・途中のレビュー | **前提: 外部 source の HyperFrames も併せて導入**。棚は bang-motion（MIT）を訳して同梱。`scripts/` 2 本（案を引く・拍の表から BGM を合成） |
 
 同梱スクリプトはすべて `--help` で使い方を出す（約束の正本は `skill-layering` ルールの「書き方」節）。
 
-**派生（外部由来を改変して所有）**: `accessibility` / `core-web-vitals` / `web-quality-audit`（由来: addyosmani/web-quality-skills, MIT）、`seo-audit` / `ai-seo` / `schema` / `cro`（由来: coreyhaines31/marketingskills, MIT）、`web-design-guidelines`（由来: vercel-labs/web-interface-guidelines, MIT）。本文を大きく書き換えているため上流には追従しない。frontmatter の `source` / `forked_at` は由来の記録で、LICENSE を同梱し本文冒頭に由来を明記する。取り込む価値のある変更が上流に出ていないかは `skills-review` で点検する。
+**派生（外部由来を改変して所有）**: `accessibility` / `core-web-vitals` / `web-quality-audit`（由来: addyosmani/web-quality-skills, MIT）、`seo-audit` / `ai-seo` / `schema` / `cro`（由来: coreyhaines31/marketingskills, MIT）、`web-design-guidelines`（由来: vercel-labs/web-interface-guidelines, MIT）。本文を大きく書き換えているため上流には追従しない。`motion-video` の構成・見た目の棚（`references/concepts.md`）も bangtutorial/bang-motion（MIT）を訳して所有している（スキル本体は自作。由来は棚のファイルの冒頭と同梱の LICENSE に書く）。frontmatter の `source` / `forked_at` は由来の記録で、LICENSE を同梱し本文冒頭に由来を明記する。取り込む価値のある変更が上流に出ていないかは `skills-review` で点検する。
 
 **他人のスキルはここにコピーしない。** 消費側の `sources` に上流リポを直接書き、追従は rulesync に任せる。本文に手を入れたくなったら、コピーして上の「派生」として所有する。中途半端に「コピーして少し直した」状態を残さない。
 
@@ -65,6 +66,7 @@
 | スキル | 上流 | 選ぶリポジトリ | ライセンス |
 |---|---|---|---|
 | `workers-best-practices` | cloudflare/skills | Cloudflare Workers を使うリポジトリ（`wrangler.toml` / `wrangler.jsonc` がある）。Workers の API・設定の現在の推奨を補う。リポジトリ側で意図的に外している推奨（`nodejs_compat` を入れない等）は、そのリポジトリのルールに 1 行書けばそちらが勝つ | Apache-2.0 |
+| `hyperframes` `hyperframes-core` `hyperframes-animation` `hyperframes-creative` `hyperframes-keyframes` `hyperframes-cli` `hyperframes-registry` `hyperframes-audio` `hyperframes-studio` `media-use` `motion-graphics` `general-video` | heygen-com/hyperframes | 動画（モーショングラフィックス）を作るリポジトリ。ここの `motion-video` と組で使う。ファイル数が多く、匿名の取り込みは GitHub の回数制限に当たるので `GITHUB_TOKEN=$(gh auth token)` を付けて install する。HyperFrames は `npx hyperframes init` のたびに自分でスキルを更新しにいくので、環境変数 `HYPERFRAMES_SKIP_SKILLS=1`（mise の `[env]` など）で止め、更新を rulesync に一本化する | Apache-2.0 |
 
 ## 使い方
 

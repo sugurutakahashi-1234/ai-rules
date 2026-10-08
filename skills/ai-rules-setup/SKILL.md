@@ -33,6 +33,7 @@ ai-rules はメニューで、何を取るかは消費側が決める。この�
 | `image-gen` + `md-infographic` / `github-issue-infographic` | 文書・記事・issue で図解を作る | `image-gen` が前提。後の 2 つだけ入れない |
 | `drawio-diagram` | 設計文書・構成図を書く | |
 | `md-to-pdf` | 配布する文書を作る（提案書・スキルシート） | |
+| `motion-video` | 題材から動画（モーショングラフィックス）を作る | README の外部 source の HyperFrames と組で入れる。単独では動画を作れない |
 | `web-quality-audit` `accessibility` `core-web-vitals` `web-design-guidelines` | 公開 Web サイト・フロント | 派生スキル群。サイトでなければ発火場面がない |
 | `seo-audit` `ai-seo` `schema` `cro` | 集客する公開サイト | 社内ツールには不要 |
 | `ai-rules-update` | 複数リポジトリの ai-rules を束ねて上げるリポジトリ（マシン設定リポジトリなど 1 か所） | |
