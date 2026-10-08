@@ -102,6 +102,9 @@ bun "$SKILL_DIR/scripts/picker.ts" <spec.json> <out.html>   # spec の形は --h
   ```
   `heygen audio sounds list` でテイストの言葉ごとに検索し、長さで絞ってダウンロードし、中身の終わり（余韻を除いた秒）・終わり方（自然に終わる / 途中で切れる）・BPM を測って `candidates.json` に書く。そのまま `picker.ts` の audio に渡せる。場面の切り替えは選んだ曲の拍に合わせる
 - **公開する動画の曲は、利用条件が書かれている音源から選ぶ。** HeyGen のカタログの曲（`Astral Generated Music`）は、規約（heygen.com/terms）にも API の案内（developers.heygen.com/background-music）にも、HeyGen の外で使う条件が書かれていない（2026-10 時点）。規約は、無料プランで作ったものを「個人・非商用・社内の評価」に限り、広告・顧客の仕事・収益化を禁じている。有料プラン（Creator・Pro・Business）なら商用に使えるが、これは作ったもの（User Output）の話で、カタログの曲も含むかは書かれていない。仕事につながる自己紹介や製品の動画は商用と読まれうる。HeyGen の曲は選ぶ段の試聴に使い、公開する版は (1) HeyGen に書面で確かめる、(2) 利用条件が明記された音源（Pixabay Music・YouTube オーディオ ライブラリなど。曲ごとの条件を記録する）に差し替える、(3) `beat-music.ts` の自作の音にする、のどれかにする。どれにしたかと曲の ID（`.media/manifest.jsonl`）を作業ディレクトリに残す
+- **利用条件が明記された無料の配布元は Mixkit が取りやすかった。** 無料ライセンス（商用可・クレジット不要。公式の案内は mixkit.co/llm-info/）で、曲は `assets.mixkit.co/music/<id>/<id>.mp3` から落とせる。ページを短時間に取りすぎると 429 になるので、一覧のページを中心に 15 回以内に抑える。Pixabay Music は自動の取得を Cloudflare が拒むので、探すならブラウザを操作する。HeyGen のアカウントのプランは `heygen user me get` の `subscription.plan` で分かる
+- **配布元の曲は 1.5〜2.5 分あるので、動画の尺に切ってから聴き比べる。** 頭から切ってフェードアウトする版と、曲の終わりの N 秒を使って曲そのものの終わり方で締まる版の 2 通りを作り、音量（loudnorm）をそろえて並べる。本人は終わりの版で比べたがり、そちらを選んだ。終わりの版は、終わりの N 秒にいちばん近い小節の頭から切ると、頭が拍に乗って自然に入る
+- **選んだ曲の拍は librosa で測る**（`uv run --with librosa --with numpy python -I <script>`。`beat_track` で 1 拍の長さと拍の位置、`onset_strength` で一番強い一撃と終わりの部分の始まり）。測った拍の表と曲の形（強い一撃・落ち着く所・鳴り終わる秒）を作り手に渡し、場面の切り替えを合わせ直させる。出どころとライセンスは作業ディレクトリに `MUSIC.md` として残す
 - 本人は有料の生成 API より、無料でテイストから選べることを優先した。有料の手段（Eleven Music など）は、本人が望んだときに出す
 - ネットに出られないときの予備として、`scripts/beat-music.ts` が拍の表から BGM と効果音を合成する。低音を厚くした版は「重い」と続けて言われたので、既定は軽めにしてある
 
