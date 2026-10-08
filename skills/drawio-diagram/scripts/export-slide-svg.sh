@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 2 ]]; then
-  echo "usage: bash scripts/export-slide-svg.sh <input.drawio> <output.svg>" >&2
-  exit 2
-fi
+usage() {
+  echo "usage: bash scripts/export-slide-svg.sh <input.drawio> <output.svg>"
+  echo "スライド埋め込み用の SVG を書き出す（余白 10px）。書き出したパスを標準出力に出す"
+}
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then usage; exit 0; fi
+if [[ $# -ne 2 ]]; then usage >&2; exit 2; fi
 
 input=$1
 output=$2

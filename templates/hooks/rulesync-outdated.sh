@@ -4,6 +4,12 @@
 # 遅れがなければ何も出さない。gh・jq・ネットワークが使えないときも黙って exit 0 にして、セッションの開始を止めない。
 # 対になるルールは rules/rulesync-freshness.md。配置（PATH に置く・settings.json に hook を書く）はマシン設定リポジトリの仕事。
 set -u
+case "${1:-}" in
+  -h|--help)
+    echo "usage: rulesync-outdated.sh [rulesync.lock のパス]"
+    echo "lock の各 source が上流より遅れていれば 1 行ずつ出す。遅れが無い・調べられないときは何も出さず終了 0"
+    exit 0 ;;
+esac
 lock="${1:-rulesync.lock}"
 [ -f "$lock" ] || exit 0
 command -v jq >/dev/null 2>&1 || exit 0

@@ -46,6 +46,8 @@
 | `ai-rules-update` | 複数リポへの共有ルール・スキル・同梱スクリプトの反映、rulesync 本体の指定版更新、スキル・ルールの利用リポジトリの逆引き | 一覧・逆引き・計画・適用のスクリプト同梱。差分を未コミットで残す |
 | `ai-rules-setup` | リポジトリの目的と構成を読んで、ここから何を選ぶか（rules / skills / templates / 会社層）を理由付きの表で提案し、承認後に書き込んで install / generate / check まで行う | 新しいリポジトリに入れる・既存リポジトリに足すときの入口。rulesync が無い場所で使うのでグローバル導入が前提 |
 
+同梱スクリプトはすべて `--help` で使い方を出す（約束の正本は `skill-layering` ルールの「書き方」節）。
+
 **派生（外部由来を改変して所有）**: `accessibility` / `core-web-vitals` / `web-quality-audit`（由来: addyosmani/web-quality-skills, MIT）、`seo-audit` / `ai-seo` / `schema` / `cro`（由来: coreyhaines31/marketingskills, MIT）、`web-design-guidelines`（由来: vercel-labs/web-interface-guidelines, MIT）。本文を大きく書き換えているため上流には追従しない。frontmatter の `source` / `forked_at` は由来の記録で、LICENSE を同梱し本文冒頭に由来を明記する。取り込む価値のある変更が上流に出ていないかは `skills-review` で点検する。
 
 **他人のスキルはここにコピーしない。** 消費側の `sources` に上流リポを直接書き、追従は rulesync に任せる。本文に手を入れたくなったら、コピーして上の「派生」として所有する。中途半端に「コピーして少し直した」状態を残さない。

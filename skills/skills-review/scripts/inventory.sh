@@ -4,6 +4,16 @@
 # 出力列: name  route  upstream  pinned  note
 set -euo pipefail
 
+usage() {
+  echo "usage: bash scripts/inventory.sh"
+  echo "作業中のリポのルートで実行し、導入済みスキルを TSV で標準出力に出す（列: name route upstream pinned note）"
+}
+case "${1:-}" in
+  -h|--help) usage; exit 0 ;;
+  "") ;;
+  *) usage >&2; exit 2 ;;
+esac
+
 printf 'name\troute\tupstream\tpinned\tnote\n'
 
 # 1. skills CLI（グローバル）

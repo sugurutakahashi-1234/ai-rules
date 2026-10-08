@@ -258,7 +258,7 @@ export function main(args: string[]): number {
 list はローカル棚卸し。usage はスキル・ルールの名前から利用プロジェクトを逆引き。update は --apply なしでは計画のみ。
 --sources は対象プロジェクトの全 sources を更新。Git add/commit/push は実行しません。
 結果は stdout の JSON、進捗は stderr。blocked/failed または探索エラーは終了コード 1。`;
-  if (!args.length || args.includes("--help")) { console.log(help); return 0; }
+  if (!args.length || args.includes("--help") || args.includes("-h")) { console.log(help); return 0; }
   const [command, ...rest] = args;
   const roots: string[] = [];
   const options: Options = { projects: [], sources: false, apply: false };

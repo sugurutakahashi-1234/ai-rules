@@ -21,6 +21,13 @@ fail() {
   exit 1
 }
 
+case "${1:-}" in
+  -h|--help)
+    echo "usage: bash scripts/analyze.sh <file_or_directory>"
+    echo "HTML を読み取り専用で点検し、結果を JSON で標準出力に出す（経過は標準エラー）。ファイルは書き換えない"
+    exit 0 ;;
+esac
+
 command -v jq >/dev/null 2>&1 || \
   fail "missing_dependency" "jq is required for safe JSON output" "Install: brew install jq"
 

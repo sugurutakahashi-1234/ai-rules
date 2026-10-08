@@ -23,7 +23,13 @@
 # kill して同条件で自動リトライする。
 set -u
 setopt NO_NOMATCH  # 未マッチのglobをエラーで中断せずbash同様に扱う（フォールバックのls用）
-ROOT=${1:?usage: parallel-imggen.sh <jobs-root>}
+usage() {
+  print "usage: zsh parallel-imggen.sh <jobs-root>"
+  sed -n '2,/^set -u$/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'
+}
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then usage; exit 0; fi
+if (( $# != 1 )); then usage >&2; exit 2; fi
+ROOT=$1
 MAX_PARALLEL=${MAX_PARALLEL:-4}
 MAX_ATTEMPTS=${MAX_ATTEMPTS:-3}
 ATTEMPT_TIMEOUT=${ATTEMPT_TIMEOUT:-480}
