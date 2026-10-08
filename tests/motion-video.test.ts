@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { chord, synth, wav } from "../skills/motion-video/scripts/beat-music";
 import { closeness, draw, loadCatalog, loadHistory } from "../skills/motion-video/scripts/draw";
+import { build } from "../skills/motion-video/scripts/picker";
+import { analyze } from "../skills/motion-video/scripts/bgm-candidates";
 
 const catalog = loadCatalog();
 
@@ -84,4 +86,75 @@ test("beat-music は引数の数が違えば使い方を出して 2 で終わる
   expect(result.exitCode).toBe(2);
   expect(new TextDecoder().decode(result.stderr)).toContain("usage:");
   expect(readFileSync(path.join(import.meta.dir, "../skills/motion-video/scripts/draw.ts"), "utf8")).toContain("usage:");
+});
+
+test("選択票: 案を残す数の上限と、1 曲を再生すると他が止まる仕掛けが入る", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    writeFileSync(path.join(dir, "a-s1.png"), "");
+    const html = build({
+      title: "足切り", mode: "keep", keep: 3,
+      columns: [{ key: "B0", name: "案 0", file: "a" }, { key: "B1", name: "案 1", file: "b" }],
+      rows: [{ key: "s1", name: "名乗り" }],
+      images: "{file}-{row}.png",
+      audio: [{ key: "H1", name: "曲 1", src: "h1.mp3" }, { key: "H2", name: "曲 2", src: "h2.mp3" }],
+      recommend: { key: "B1", reason: "理由" },
+    }, dir);
+    expect(html.match(/class="rec">おすすめ</g)).toHaveLength(2); // 案の札と見出しの横の一文
+    expect(html).toContain("B1：理由");
+    expect(html).toContain('"keep":3');
+    expect(html).toContain('src="a-s1.png"');
+    expect(html).toContain("まだ無い"); // b-s1.png は無い
+    expect(html.match(/<audio /g)).toHaveLength(2);
+    expect(html).not.toContain("currentTime = 0"); // 止めた位置は残す（頭に戻さない）
+    expect(html).toContain("b.pause()"); // 1 曲を再生すると他は止まる
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("BGM の候補: 中身の終わりと余韻、途中で切れる曲を見分ける", () => {
+  const SR = 11025;
+  const tone = (sec: number, silentFrom: number) => Float32Array.from({ length: sec * SR }, (_, i) => (i / SR < silentFrom ? 0.5 * Math.sin((2 * Math.PI * 220 * i) / SR) : 0));
+  const ends = analyze(tone(30, 26), 30);
+  expect(ends.ending).toBe("自然に終わる");
+  expect(ends.contentEnd).toBeCloseTo(26, 0);
+  expect(ends.tail).toBeCloseTo(4, 0);
+  expect(analyze(tone(30, 30), 30).ending).toBe("途中で切れる");
+});
+
+test("選択票: 決めごとが複数ならタブで切り替える 1 枚になり、回答をまとめてコピーできる", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    const html = build({
+      title: "仕上げ前",
+      pages: [
+        { title: "技術の見せ方", mode: "keep", keep: 1, columns: [{ key: "T1", name: "案 1" }, { key: "T2", name: "案 2" }], rows: [{ key: "a", name: "歩み" }], images: "{file}-{row}.png", recommend: { key: "T2" } },
+        { title: "BGM", audio: [{ key: "M1", name: "曲", src: "m1.mp3" }] },
+      ],
+    }, dir);
+    expect(html.match(/<button class="tab"/g)).toHaveLength(2);
+    expect(html).toContain("回答をまとめてコピー");
+    expect(html.match(/<section class="page"/g)).toHaveLength(2);
+    expect(html).toContain('"mode":"none"'); // BGM だけのページ
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("選択票: mode view のページは残すボタンを出さず、回答済みとして数える", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    const html = build({
+      title: "確認",
+      pages: [
+        { title: "直した点", mode: "view", columns: [{ key: "A1", name: "全景" }], rows: [{ key: "a", name: "全景" }], images: "{file}-{row}.png" },
+        { title: "強み", mode: "keep", keep: 1, columns: [{ key: "S1", name: "案" }], rows: [{ key: "a", name: "a" }], images: "{file}-{row}.png" },
+      ],
+    }, dir);
+    expect(html.match(/<button class="keep">/g)).toHaveLength(1);
+    expect(html).toContain('"mode":"view"');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
