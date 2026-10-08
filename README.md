@@ -20,7 +20,7 @@
 | `code-conventions` | `**/*` | コーディング規約（変更の範囲を広げない・コメントは WHY のみ・UTC/JST 等） |
 | `japanese-writing` | `**/*.md` | 日本語の文体規範。AI 生成文に出やすい癖（空虚な形容・予告・対句・翻訳調）の禁止 |
 | `github-actions` | `.github/workflows/**` | ワークフローの制約（SHA ピン・skip の扱い・デプロイのゲート） |
-| `dependency-hygiene` | なし（常時） | 依存の扱い（公開直後を避ける・更新 bot の判断・直せない脆弱性） |
+| `dependency-hygiene` | `**/package.json`・lockfile 等 | 依存の扱い（公開直後を避ける・更新 bot の判断・直せない脆弱性） |
 | `skill-layering` | スキル関連 | スキル・ルールの置き場所判断、共有スキルを変える前の影響確認（利用リポジトリの逆引きと、上流で直すか分けるかの判定）、今のモデル向けの書き方（強調語を使わない・理由を書く・ハーネスと重ねない） |
 | `browser-tooling` | なし（常時） | ブラウザ作業の道具の選び方（ログインが要る操作はユーザーの Chrome、自サイトの検証は内蔵ブラウザ、外部 Playwright MCP は使わない） |
 | `output-style` | なし（常時） | 回答の形。結論と次の行動を先に、手順は番号付き、一覧は 5 項目まで、前置き・締めの挨拶なし（ayghri/i-have-adhd 由来） |
