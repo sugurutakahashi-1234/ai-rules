@@ -26,7 +26,7 @@ export type Page = {
   columns?: { key: string; name: string; file?: string }[];
   /** 場面 */
   rows?: { key: string; name: string; sub?: string }[];
-  /** 画像の場所。出力 HTML からの相対パスで、{file} と {row} を置き換える */
+  /** 画像の場所。出力 HTML からの相対パスで、{file} と {row} を置き換える。.mp4 / .webm なら音なしで繰り返し再生する動画として並べる */
   images?: string;
   /** 動きのメモの JSON（{row: メモ} か、場面順の配列）。{file} を置き換える。任意 */
   notes?: string;
@@ -59,8 +59,11 @@ function renderPage(p: Page, pi: number, baseDir: string, next: string | null): 
   const figure = (file: string, row: NonNullable<Page["rows"]>[number], index: number, label: boolean) => {
     const src = fill(p.images ?? "", file, row.key);
     const cap = `${label ? `${esc(row.name)}：` : ""}${esc(noteOf(file, row.key, index))}`;
+    const media = /\.(mp4|webm|mov)$/i.test(src)
+      ? `<video src="${esc(src)}" autoplay loop muted playsinline></video>` // 動きの見本は数秒の動画で並べる（音なしで繰り返す）
+      : `<img src="${esc(src)}" alt="" loading="lazy">`;
     return p.images && existsSync(join(baseDir, src))
-      ? `<figure><img src="${esc(src)}" alt="" loading="lazy"><figcaption>${cap}</figcaption></figure>`
+      ? `<figure>${media}<figcaption>${cap}</figcaption></figure>`
       : `<figure><div class="missing">${esc(row.name)}：まだ無い</div></figure>`;
   };
   const rec = p.recommend?.key;
@@ -168,6 +171,7 @@ export function build(spec: Spec, baseDir: string): string {
   .card .btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
   figure { margin: 0; }
   figure img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; cursor: zoom-in; }
+  figure video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #000; }
   figcaption { font-size: 12px; color: var(--sub); margin-top: 4px; line-height: 1.5; }
   .missing { aspect-ratio: 16 / 9; display: grid; place-items: center; color: var(--sub); border: 1px dashed var(--line); border-radius: 8px; }
   .row, .box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 16px; }

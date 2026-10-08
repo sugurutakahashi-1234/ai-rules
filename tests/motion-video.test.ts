@@ -158,3 +158,23 @@ test("選択票: mode view のページは残すボタンを出さず、回答�
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("選択票: images が動画なら video で並べる", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    writeFileSync(path.join(dir, "H1-a.mp4"), "");
+    const html = build({ title: "動き", mode: "keep", keep: 1, columns: [{ key: "H1", name: "案" }], rows: [{ key: "a", name: "a" }], images: "{file}-{row}.mp4" }, dir);
+    expect(html).toContain('<video src="H1-a.mp4" autoplay loop muted playsinline>');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("仮アニメーション: 引数を読み、--help は 0 で終わる", async () => {
+  const { parse, main } = await import("../skills/motion-video/scripts/capture-mock");
+  const { files, opts } = parse(["a.html", "b.html", "--out-dir", "x", "--fps", "24", "--seconds", "2"]);
+  expect(files).toEqual(["a.html", "b.html"]);
+  expect(opts).toMatchObject({ outDir: "x", fps: 24, seconds: 2, scale: 0.5 });
+  expect(() => parse(["a.html", "--fps", "0"])).toThrow();
+  expect(await main(["--help"])).toBe(0);
+});
