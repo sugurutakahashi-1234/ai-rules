@@ -26,9 +26,11 @@ export function inspect(project: string) {
   const config = Bun.JSONC.parse(readFileSync(path.join(dir, "rulesync.jsonc"), "utf8")) as any;
   if (!config || typeof config !== "object" || Array.isArray(config)) throw new Error("rulesync.jsonc must be an object");
   if (config.sources !== undefined && !Array.isArray(config.sources)) throw new Error("sources must be an array");
+  // 選定を省いた種類は null。意味は rulesync の規定どおり usage() で解釈する
+  const names = (value: unknown) => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : null;
   const sources = (config.sources ?? []).map((entry: any) => {
     if (!entry || typeof entry.source !== "string") throw new Error("Each source must have a source string");
-    return { source: entry.source, ref: entry.ref ?? null, transport: entry.transport ?? "github" };
+    return { source: entry.source, ref: entry.ref ?? null, transport: entry.transport ?? "github", rules: names(entry.rules), skills: names(entry.skills) };
   });
   const pkg = existsSync(path.join(dir, "package.json")) ? readJson(path.join(dir, "package.json")) : {};
   const locks: Record<string, unknown> = {};
@@ -44,6 +46,7 @@ export function inspect(project: string) {
   return {
     project: dir, repo, commonGit, remote: origin.code === 0 ? origin.out.trim() : null,
     dirty: git(repo, "status", "--porcelain", "--untracked-files=all") !== "",
+    features: Array.isArray(config.features) ? config.features as string[] : null,
     sources, locks,
     // 完全固定 + catalog 化したリポは `"catalog:"` で参照するので、ルートの workspaces.catalog から実際の版を引く
     rulesync: ((spec: string | null) => spec === "catalog:" ? pkg.workspaces?.catalog?.rulesync ?? null : spec)(
@@ -82,6 +85,42 @@ export function discover(roots: string[]) {
     catch (error) { errors.push({ project: dir, error: String(error) }); }
   }
   return { projects, errors };
+}
+
+export type UsageFilter = { source?: string; skill?: string; rule?: string };
+type UsageRow = { source: string; kind: "skill" | "rule"; name: string; projects: string[] };
+/**
+ * スキル・ルールの名前から、それを選んでいるプロジェクトを逆引きする（読み取りのみ）。
+ * 共有スキルを上流で直す前に、影響するリポジトリを並べるために使う。
+ * features に含まれない種類は生成されないので数えない。選定の解釈は rulesync の規定に合わせる:
+ * 両方省くとスキルを全件（name "*"）・ルールは 0 件、片方だけ書くと省いた方は 0 件、"*" を書けばその種類を全件。
+ */
+export function usage(roots: string[], filter: UsageFilter = {}) {
+  const { projects, errors } = discover(roots);
+  const bare = (source: string) => source.replace(/@[^/]*$/, "");
+  const rows = new Map<string, UsageRow>();
+  for (const project of projects) {
+    for (const entry of project.sources) {
+      const source = bare(entry.source);
+      if (filter.source && source !== bare(filter.source)) continue;
+      for (const kind of ["skill", "rule"] as const) {
+        if (project.features && !project.features.includes(`${kind}s`)) continue;
+        if ((filter.skill && kind !== "skill") || (filter.rule && kind !== "rule")) continue;
+        const wanted = filter.skill ?? filter.rule;
+        const selected = kind === "skill" ? entry.skills : entry.rules;
+        const implicit = kind === "skill" && entry.skills === null && entry.rules === null ? ["*"] : [];
+        for (const name of selected ?? implicit) {
+          if (wanted && name !== wanted && name !== "*") continue;
+          const key = `${source}\0${kind}\0${name}`;
+          const row = rows.get(key) ?? { source, kind, name, projects: [] };
+          row.projects.push(project.project);
+          rows.set(key, row);
+        }
+      }
+    }
+  }
+  const sorted = [...rows.values()].sort((a, b) => b.projects.length - a.projects.length || a.kind.localeCompare(b.kind) || a.name.localeCompare(b.name));
+  return { usage: sorted, errors };
 }
 
 export type Options = { projects: string[]; sources: boolean; version?: string; apply: boolean };
@@ -213,27 +252,41 @@ export function update(options: Options, execute: Runner = run): Report[] {
 export function main(args: string[]): number {
   const help = `Usage:
   bun update.ts list --root PATH [--root PATH ...]
+  bun update.ts usage --root PATH [--root PATH ...] [--source OWNER/REPO] [--skill NAME | --rule NAME]
   bun update.ts update --project PATH [--project PATH ...] [--sources] [--rulesync-version X.Y.Z] [--apply]
 
-list はローカル棚卸し。update は --apply なしでは計画のみ。
+list はローカル棚卸し。usage はスキル・ルールの名前から利用プロジェクトを逆引き。update は --apply なしでは計画のみ。
 --sources は対象プロジェクトの全 sources を更新。Git add/commit/push は実行しません。
 結果は stdout の JSON、進捗は stderr。blocked/failed または探索エラーは終了コード 1。`;
   if (!args.length || args.includes("--help")) { console.log(help); return 0; }
   const [command, ...rest] = args;
   const roots: string[] = [];
   const options: Options = { projects: [], sources: false, apply: false };
-  if (command !== "list" && command !== "update") throw new Error(`Unknown command: ${command}`);
+  const filter: UsageFilter = {};
+  if (!["list", "usage", "update"].includes(command)) throw new Error(`Unknown command: ${command}`);
   for (let index = 0; index < rest.length; index++) {
     const flag = rest[index];
     if (command === "update" && flag === "--sources") options.sources = true;
     else if (command === "update" && flag === "--apply") options.apply = true;
-    else if ((command === "list" && flag === "--root") || (command === "update" && ["--project", "--rulesync-version"].includes(flag))) {
+    else if (((command === "list" || command === "usage") && flag === "--root")
+      || (command === "usage" && ["--source", "--skill", "--rule"].includes(flag))
+      || (command === "update" && ["--project", "--rulesync-version"].includes(flag))) {
       const value = rest[++index];
       if (!value || value.startsWith("--")) throw new Error(`${flag} requires a value`);
       if (flag === "--root") roots.push(value);
+      else if (flag === "--source") filter.source = value;
+      else if (flag === "--skill") filter.skill = value;
+      else if (flag === "--rule") filter.rule = value;
       else if (flag === "--project") options.projects.push(value);
       else options.version = value;
     } else throw new Error(`Unknown option: ${flag}`);
+  }
+  if (command === "usage") {
+    if (!roots.length) throw new Error("--root を明示してください");
+    if (filter.skill && filter.rule) throw new Error("--skill と --rule は同時に指定できません");
+    const result = usage(roots, filter);
+    console.log(JSON.stringify(result, null, 2));
+    return result.errors.length ? 1 : 0;
   }
   if (command === "list") {
     if (!roots.length) throw new Error("--root を明示してください");

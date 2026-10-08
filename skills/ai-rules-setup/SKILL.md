@@ -38,6 +38,8 @@ ai-rules はメニューで、何を取るかは消費側が決める。この�
 | `ai-rules-update` | 複数リポジトリの ai-rules を束ねて上げるリポジトリ（マシン設定リポジトリなど 1 か所） | |
 | `skills-review` | 点検を回すリポジトリ（1 か所） | モデルを変えたとき・hook が遅れを出したときの棚卸し。方々に入れると台帳が割れる |
 
+外部のスキル（他人の配布物）は、ai-rules の README「よく使う外部 source」の表から、表の「選ぶリポジトリ」に当てはまるものだけを同じ表に入れて提案する。表は採用を決めた外部スキルの台帳で、ここに無いものを入れたくなったら、入れる前に表へ行を足すことを提案する（次のリポジトリでも同じ選択ができるように、採用の決定を ai-rules に残す）。
+
 templates は rulesync で配れないので実ファイルをコピーする。
 
 | templates | 入れる条件 |
@@ -49,7 +51,7 @@ templates は rulesync で配れないので実ファイルをコピーする。
 
 ## 書き込むもの
 
-- `rulesync.jsonc`: `targets` は `claudecode` と `codexcli`、`features` は `rules` と `skills`、`delete: true`。source ごとに `rules` と `skills` を名前で明示する。`rules` を省くと全 skills が取得され、`"skills": []` は「0 件一致」で install が失敗する
+- `rulesync.jsonc`: `targets` は `claudecode` と `codexcli`、`features` は `rules` と `skills`、`delete: true`。source ごとに `rules` と `skills` を名前で明示する。両方を省くと全 skills が取得され（rules は 0 件）、片方だけ書くと省いた方は 0 件になる。`"skills": []` は「0 件一致」で install が失敗する
 - `features` に `mcp` を足すのは MCP サーバーを使うリポ。`.rulesync/mcp.jsonc` を正本にすると `.mcp.json`（Claude Code）と `.codex/config.toml` の `[mcp_servers.*]`（Codex）が生成されるので、接続先を 2 か所に手書きしない
 - `features` に `permissions` を足すと `.rulesync/permissions.jsonc` から `.claude/settings.json` と `.codex/config.toml` の両方が出る（templates/claude-settings.json を手でマージする代わり）。ただし MCP ツールの allow は Codex に渡らない（Codex 向けは read/edit/write/webfetch だけ）ので、`mcp.jsonc` の `codexcli.mcpServers.<name>.default_tools_approval_mode`（`writes` = 読み取り専用と宣言されたツール以外は都度確認）で代替する
 - Codex のツール単位の `tools.<name>.approval_mode` は rulesync の予約キー `tools`（配列）と衝突して `mcp.jsonc` に書けない。サーバー単位の既定までで止める（2026-10-07 時点。要望は rulesync の [#3318](https://github.com/dyoshikawa/rulesync/issues/3318) に出してあり、取り込まれたらこの行を削る）

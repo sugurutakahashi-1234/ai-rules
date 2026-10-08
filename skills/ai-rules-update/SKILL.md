@@ -1,6 +1,6 @@
 ---
 name: ai-rules-update
-description: 複数のローカルリポジトリに共有ルール・スキル・同梱スクリプトの変更を反映し、rulesync 本体も指定版へ更新する。ai-rules の利用先を探したい、一括で更新・再生成・検証したいときに使う。
+description: 複数のローカルリポジトリに共有ルール・スキル・同梱スクリプトの変更を反映し、rulesync 本体も指定版へ更新する。ai-rules の利用先を探したい、あるスキル・ルールをどのリポジトリが使っているか逆引きしたい、一括で更新・再生成・検証したいときに使う。
 ---
 
 # ai-rules の一括更新
@@ -31,6 +31,18 @@ bun "$SKILL_DIR/scripts/update.ts" list --root /path/to/repos
 `--root` は複数指定できる。JSON 出力には設定の場所、Git ルート、remote、作業中の差分、sources と lock の参照、rulesync の指定版が載る。読み取り専用のローカル棚卸しで、上流との差を調べた結果ではない。必要なら lock の `resolvedRef` と該当 source の参照先を突合する。
 
 探索範囲はユーザーの指定と既存のリポ台帳から決める。発見した全リポが更新対象とは限らない。アーカイブ済み・運用停止・別名 clone・別 worktree を区別し、同じリポの更新先は一つにする。対象ごとの AGENTS.md、rulesync 設定、package.json の scripts を読み、今回の実行範囲を確認する。
+
+## 利用先を逆引きする
+
+共有スキル・ルールを上流で直す前に、影響するリポジトリを並べるときに使う（判定の流れは `skill-layering` ルールの「共有スキル・ルールを変えるとき」）。
+
+```bash
+bun "$SKILL_DIR/scripts/update.ts" usage --root /path/to/repos --skill design-compare
+bun "$SKILL_DIR/scripts/update.ts" usage --root /path/to/repos --rule japanese-writing
+bun "$SKILL_DIR/scripts/update.ts" usage --root /path/to/repos --source owner/repo
+```
+
+出力は `source` `kind` `name` `projects` の行で、利用数の多い順。選定の解釈は rulesync の規定に合わせてある。`skills` と `rules` を両方省いた source はスキルを全件取るので `name: "*"` に入り、片方だけ書いた source は省いた方を 0 件として数えない。`features` に含まれない種類は生成されないので数えない。ローカルに clone していないリポジトリは出てこないので、件数は下限として扱う。
 
 ## 計画と適用
 

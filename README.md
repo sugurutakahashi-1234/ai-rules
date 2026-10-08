@@ -21,7 +21,7 @@
 | `japanese-writing` | `**/*.md` | 日本語の文体規範。AI 生成文に出やすい癖（空虚な形容・予告・対句・翻訳調）の禁止 |
 | `github-actions` | `.github/workflows/**` | ワークフローの制約（SHA ピン・skip の扱い・デプロイのゲート） |
 | `dependency-hygiene` | なし（常時） | 依存の扱い（公開直後を避ける・更新 bot の判断・直せない脆弱性） |
-| `skill-layering` | スキル関連 | スキル・ルールの置き場所判断と、今のモデル向けの書き方（強調語を使わない・理由を書く・ハーネスと重ねない） |
+| `skill-layering` | スキル関連 | スキル・ルールの置き場所判断、共有スキルを変える前の影響確認（利用リポジトリの逆引きと、上流で直すか分けるかの判定）、今のモデル向けの書き方（強調語を使わない・理由を書く・ハーネスと重ねない） |
 | `browser-tooling` | なし（常時） | ブラウザ作業の道具の選び方（ログインが要る操作はユーザーの Chrome、自サイトの検証は内蔵ブラウザ、外部 Playwright MCP は使わない） |
 | `output-style` | なし（常時） | 回答の形。結論と次の行動を先に、手順は番号付き、一覧は 5 項目まで、前置き・締めの挨拶なし（ayghri/i-have-adhd 由来） |
 | `voice-input` | なし（常時） | 音声入力のプロンプトの読み方（誤変換を字面どおりに受け取らず、文脈から意図を解釈する） |
@@ -43,7 +43,7 @@
 | `md-to-pdf` | Markdown→PDF の 2 段変換手順 | |
 | `drawio-diagram` | draw.io 図の作成・書き出し・自己チェック | agents/references/scripts 同梱 |
 | `skills-review` | 導入済みスキルの棚卸し・追従の遅れ・上位互換の探索・提案表 | モデルを変えたとき・hook が遅れを出したとき・スキルの発火がおかしいときに呼ぶ。`scripts/inventory.sh` 同梱 |
-| `ai-rules-update` | 複数リポへの共有ルール・スキル・同梱スクリプトの反映、rulesync 本体の指定版更新 | 一覧・計画・適用のスクリプト同梱。差分を未コミットで残す |
+| `ai-rules-update` | 複数リポへの共有ルール・スキル・同梱スクリプトの反映、rulesync 本体の指定版更新、スキル・ルールの利用リポジトリの逆引き | 一覧・逆引き・計画・適用のスクリプト同梱。差分を未コミットで残す |
 | `ai-rules-setup` | リポジトリの目的と構成を読んで、ここから何を選ぶか（rules / skills / templates / 会社層）を理由付きの表で提案し、承認後に書き込んで install / generate / check まで行う | 新しいリポジトリに入れる・既存リポジトリに足すときの入口。rulesync が無い場所で使うのでグローバル導入が前提 |
 
 **派生（外部由来を改変して所有）**: `accessibility` / `core-web-vitals` / `web-quality-audit`（由来: addyosmani/web-quality-skills, MIT）、`seo-audit` / `ai-seo` / `schema` / `cro`（由来: coreyhaines31/marketingskills, MIT）、`web-design-guidelines`（由来: vercel-labs/web-interface-guidelines, MIT）。本文を大きく書き換えているため上流には追従しない。frontmatter の `source` / `forked_at` は由来の記録で、LICENSE を同梱し本文冒頭に由来を明記する。取り込む価値のある変更が上流に出ていないかは `skills-review` で点検する。
@@ -57,6 +57,8 @@
 ### よく使う外部 source
 
 ここから配るものではないが、消費側の `sources` に並べる候補としてよく出てくるもの。該当する技術を使うリポジトリだけが選ぶ。lock 固定と一括更新（`ai-rules-update --sources`）はここのスキルと同じに効く。
+
+この表は採用を決めた外部スキルの台帳でもある。`ai-rules-setup` はこの表から提案するので、新しく外部スキルを採用したら、使い始めたリポジトリに書くのと同時にここへ 1 行足す。
 
 | スキル | 上流 | 選ぶリポジトリ | ライセンス |
 |---|---|---|---|

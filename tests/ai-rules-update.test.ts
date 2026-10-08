@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "bun:test";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { discover, inspect, main, run, update, type Runner } from "../skills/ai-rules-update/scripts/update";
+import { discover, inspect, main, run, update, usage, type Runner } from "../skills/ai-rules-update/scripts/update";
 
 const roots: string[] = [];
 function sandbox() {
@@ -193,4 +193,28 @@ test("CLI returns failure when an explicitly selected project is blocked", () =>
   const result = run(dir, [process.execPath, path.resolve(import.meta.dir, "../skills/ai-rules-update/scripts/update.ts"), "update", "--project", dir, "--sources"]);
   expect(result.code).toBe(1);
   expect(JSON.parse(result.out).results[0].status).toBe("blocked");
+});
+
+test("usage reverse-indexes selections, honours features, and follows rulesync's rules for omitted selections", () => {
+  const root = sandbox();
+  const a = fixture(root, "a"), b = fixture(root, "b"), c = fixture(root, "c");
+  writeFileSync(path.join(a, "rulesync.jsonc"), `{ "features": ["rules", "skills"], "sources": [{ "source": "example/ai-rules", "rules": ["git-safety"], "skills": ["design-compare"] }] }`);
+  // features に skills が無いので、他の source のスキルは数えない。@ 付きの source は同じ上流として束ねる
+  writeFileSync(path.join(b, "rulesync.jsonc"), `{ "features": ["rules"], "sources": [{ "source": "example/ai-rules@v1.0.0", "rules": ["git-safety", "japanese-writing"] }, { "source": "other/skills", "skills": ["x"] }] }`);
+  // 選定を両方省いた source はスキルを全件取得し、ルールは取得しない
+  writeFileSync(path.join(c, "rulesync.jsonc"), `{ "features": ["rules", "skills"], "sources": [{ "source": "example/ai-rules" }] }`);
+  const all = usage([root]);
+  expect(all.errors).toEqual([]);
+  const find = (kind: string, name: string) => all.usage.find(row => row.source === "example/ai-rules" && row.kind === kind && row.name === name)?.projects;
+  expect(find("rule", "git-safety")).toEqual([a, b]);
+  expect(find("rule", "*")).toBeUndefined();
+  expect(find("skill", "design-compare")).toEqual([a]);
+  expect(find("skill", "*")).toEqual([c]);
+  expect(all.usage.some(row => row.source === "other/skills")).toBe(false);
+  const only = usage([root], { skill: "design-compare" });
+  expect(only.usage.map(row => [row.name, row.projects])).toEqual([["*", [c]], ["design-compare", [a]]]);
+  expect(usage([root], { rule: "japanese-writing" }).usage.map(row => row.projects)).toEqual([[b]]);
+  expect(usage([root], { source: "other/skills" }).usage).toEqual([]);
+  expect(() => main(["usage"])).toThrow("--root");
+  expect(() => main(["usage", "--root", root, "--skill", "x", "--rule", "y"])).toThrow("同時に");
 });
