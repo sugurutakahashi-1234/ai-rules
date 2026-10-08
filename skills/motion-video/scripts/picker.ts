@@ -22,8 +22,8 @@ export type Page = {
   mode?: "keep" | "pick" | "view";
   /** mode "keep" で残せる数。既定 3 */
   keep?: number;
-  /** 案。file は画像とメモのファイル名に入る名前（既定は key） */
-  columns?: { key: string; name: string; file?: string }[];
+  /** 案。file は画像とメモのファイル名に入る名前（既定は key）。text を書くと画像の代わりにその文を出す（文言・URL・尺のような、絵を作るまでもない直しの「直す前 → 直した後」） */
+  columns?: { key: string; name: string; file?: string; text?: string }[];
   /** 場面 */
   rows?: { key: string; name: string; sub?: string }[];
   /** 画像の場所。出力 HTML からの相対パスで、{file} と {row} を置き換える。.mp4 / .webm なら音なしで繰り返し再生する動画として並べる */
@@ -56,7 +56,8 @@ function renderPage(p: Page, pi: number, baseDir: string, next: string | null): 
   };
   const rows = p.rows ?? [];
   const cols = p.columns ?? [];
-  const figure = (file: string, row: NonNullable<Page["rows"]>[number], index: number, label: boolean) => {
+  const figure = (file: string, row: NonNullable<Page["rows"]>[number], index: number, label: boolean, text?: string) => {
+    if (text !== undefined) return `<figure><div class="txt">${esc(text)}</div></figure>`;
     const src = fill(p.images ?? "", file, row.key);
     const cap = `${label ? `${esc(row.name)}：` : ""}${esc(noteOf(file, row.key, index))}`;
     const media = /\.(mp4|webm|mov)$/i.test(src)
@@ -72,7 +73,7 @@ function renderPage(p: Page, pi: number, baseDir: string, next: string | null): 
   let body = "";
   if (cols.length && (mode === "keep" || mode === "view")) {
     body = `<div class="grid">${cols
-      .map((c) => `<div class="card${mode === "keep" ? " col" : ""}" data-col="${esc(c.key)}"><div class="head"><b>${esc(c.key)}</b> ${esc(c.name)}${badge(c.key)}${mode === "keep" ? '<button class="keep">残す</button>' : ""}</div>${rows.map((r, i) => figure(c.file ?? c.key, r, i, rows.length > 1)).join("")}<textarea class="memo" data-memo="${esc(c.key)}" placeholder="この案への一言（任意）"></textarea></div>`)
+      .map((c) => `<div class="card${mode === "keep" ? " col" : ""}" data-col="${esc(c.key)}"><div class="head"><b>${esc(c.key)}</b> ${esc(c.name)}${badge(c.key)}${mode === "keep" ? '<button class="keep">残す</button>' : ""}</div>${rows.map((r, i) => figure(c.file ?? c.key, r, i, rows.length > 1, c.text)).join("")}<textarea class="memo" data-memo="${esc(c.key)}" placeholder="この案への一言（任意）"></textarea></div>`)
       .join("")}</div>`;
   } else if (cols.length) {
     body = rows
@@ -173,6 +174,7 @@ export function build(spec: Spec, baseDir: string): string {
   figure img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; cursor: zoom-in; }
   figure video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #000; }
   figcaption { font-size: 12px; color: var(--sub); margin-top: 4px; line-height: 1.5; }
+  .txt { white-space: pre-wrap; font-size: 15px; line-height: 1.7; padding: 14px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); }
   .missing { aspect-ratio: 16 / 9; display: grid; place-items: center; color: var(--sub); border: 1px dashed var(--line); border-radius: 8px; }
   .row, .box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 16px; }
   .row h3, .box h3 { font-size: 16px; margin: 0 0 10px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
@@ -373,7 +375,7 @@ spec.json の例（ページが 1 つ）:
     const hasCards = !!p.columns?.length;
     if (!p.title) throw new Error("各ページに title が要る");
     if (!hasCards && !p.audio?.length) throw new Error(`${p.title}: columns か audio のどちらかが要る`);
-    if (hasCards && (!p.rows?.length || !p.images || !["keep", "pick", "view", undefined].includes(p.mode))) throw new Error(`${p.title}: columns を書くときは rows・images が要り、mode は keep・pick・view`);
+    if (hasCards && (!p.rows?.length || (!p.images && !p.columns!.every((c) => c.text !== undefined)) || !["keep", "pick", "view", undefined].includes(p.mode))) throw new Error(`${p.title}: columns を書くときは rows・images が要り、mode は keep・pick・view`);
   }
   writeFileSync(args[1], build(spec, dirname(args[1])));
   console.error(`${args[1]}: ページ ${pages.length}・案 ${pages.reduce((n, p) => n + (p.columns?.length ?? 0), 0)}・BGM ${pages.reduce((n, p) => n + (p.audio?.length ?? 0), 0)}`);

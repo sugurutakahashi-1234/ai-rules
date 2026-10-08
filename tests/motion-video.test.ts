@@ -178,3 +178,13 @@ test("仮アニメーション: 引数を読み、--help は 0 で終わる", as
   expect(() => parse(["a.html", "--fps", "0"])).toThrow();
   expect(await main(["--help"])).toBe(0);
 });
+
+test("選択票: text を持つ案は画像の代わりに文を出す（確認画面用）", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    const html = build({ title: "確認", mode: "view", columns: [{ key: "C1", name: "URL", text: "前: a.github.io\n後: https://a.github.io/" }], rows: [{ key: "a", name: "a" }], images: "{file}-{row}.png" }, dir);
+    expect(html).toContain('<div class="txt">前: a.github.io');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
