@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 /**
  * 案（静止画・動画・文）と BGM の選択票を 1 枚の HTML に組む。本人は選んで「回答をまとめてコピー」し、会話に貼り戻す。
+ * relay.ts の open で開けば [送信] が出て、貼り戻しなしで agent に届く（agent は relay.ts wait で読む）。
  *
  * - 決めごとが複数あるときは pages に並べ、1 枚の中でタブで切り替える（ページを何枚も開かせない）
  * - タブには各ページの状態（未回答 / 回答済み / 送信済み / 送信後に変更、確認用のページは 未確認 / 確認済み）が出る。
@@ -248,7 +249,7 @@ export function build(spec: Spec, baseDir: string): string {
   <section class="box">
     <h3>全体へのコメント</h3>
     <textarea id="allmemo" class="memo" placeholder="組み合わせたい要素など（任意）"></textarea>
-    <p class="actions"><button id="copy" class="on">${multi ? "回答をまとめてコピー" : "回答をコピー"}</button><button id="selall">全選択</button></p>
+    <p class="actions"><button id="send" class="on" hidden>${multi ? "回答をまとめて送信" : "回答を送信"}</button><button id="copy" class="on">${multi ? "回答をまとめてコピー" : "回答をコピー"}</button><button id="selall">全選択</button><span id="sendmsg" class="warn"></span></p>
     <textarea id="out" readonly placeholder="「回答をコピー」で、ここに選んだ内容が出ます。コピーできないときは全選択してチャットに貼ってください"></textarea>
   </section>
 </section>`;
@@ -560,6 +561,22 @@ ${summary}
     try { await navigator.clipboard.writeText(text); btn.textContent = "コピーしました"; } catch (err) { out.select(); }
   };
   document.getElementById("selall").onclick = () => { const t = document.getElementById("out"); t.select(); t.setSelectionRange(0, t.value.length); };
+  // 中継（relay.ts の open）経由で開いていれば [送信] を出す。押すと回答が中継に届き、agent は wait で読む。file:// ではコピーのまま
+  if (location.protocol === "http:" || location.protocol === "https:") {
+    const send = document.getElementById("send"), copy = document.getElementById("copy"), msg = document.getElementById("sendmsg");
+    send.hidden = false; copy.classList.remove("on");
+    send.onclick = async () => {
+      const text = answer(), out = document.getElementById("out");
+      out.value = text;
+      try {
+        const res = await fetch("/__answer?page=" + encodeURIComponent(decodeURIComponent(location.pathname.split("/").pop())), { method: "POST", body: text });
+        if (!res.ok) throw new Error(res.status);
+        C.pages.forEach((_, i) => { if (answered(i)) s.sent[i] = pageText(i); });
+        s.allSent = s.all; save(); paint();
+        send.textContent = "送信しました"; msg.textContent = "";
+      } catch (err) { msg.textContent = "送れなかった（中継が止まっている）。コピーして貼ってください"; }
+    };
+  }
   if (C.multi && s.tab < N) s.seen[s.tab] = true;
   paint();
 </script>
@@ -586,6 +603,7 @@ export function main(args: string[]): number {
   const help = `usage: bun picker.ts <spec.json> <out.html>
 
 案（静止画・動画・文）と BGM の選択票を 1 枚の HTML に組む（書き出すのは <out.html> だけ）。
+開くのは relay.ts の open（[送信] が出て、回答が貼り付けなしで届く。agent は relay.ts wait で読む）。relay を使わないなら file:// で開き、コピーで貼り戻してもらう。
 決めごとが複数あるときは pages に並べると、1 枚の中でタブで切り替わる。タブに各ページの状態（未回答 / 回答済み / 送信済み）が出て、
 最後のタブ「回答のまとめ」に全ページの回答が集まる。コピーした回答の末尾に進み具合の 1 行（まだ: …）が付く。
 画像・メモ・音のパスは <out.html> からの相対パスで書く。

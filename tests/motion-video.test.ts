@@ -322,10 +322,48 @@ test("選択票: check は決めた扱いを 1 件 1 行で見せ、違う件だ
   }
 });
 
-test("design-compare の picker.ts は motion-video と同じ中身（スキルごとに持つが、育てるのは 1 本）", () => {
-  const a = readFileSync(path.join(import.meta.dir, "../skills/motion-video/scripts/picker.ts"), "utf8");
-  const b = readFileSync(path.join(import.meta.dir, "../skills/design-compare/scripts/picker.ts"), "utf8");
-  expect(b).toBe(a);
+test("design-compare の picker.ts と relay.ts は motion-video と同じ中身（スキルごとに持つが、育てるのは 1 本）", () => {
+  for (const name of ["picker.ts", "relay.ts"]) {
+    const a = readFileSync(path.join(import.meta.dir, "../skills/motion-video/scripts", name), "utf8");
+    const b = readFileSync(path.join(import.meta.dir, "../skills/design-compare/scripts", name), "utf8");
+    expect(b).toBe(a);
+  }
+});
+
+test("選択票: 中継で開いたときだけ [送信] が出て、回答を POST する", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    const html = build({ title: "x", mode: "keep", keep: 1, rows: [{ key: "r", name: "" }], columns: [{ key: "A", name: "a", text: "t" }] }, dir);
+    expect(html).toContain('<button id="send" class="on" hidden>回答を送信</button>');
+    expect(html).toContain('location.protocol === "http:"');
+    expect(html).toContain('fetch("/__answer?page="');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("中継: フォルダの中だけ配信し、POST された回答を <ページ名>.answer.txt に書く。wait は時間切れで null", async () => {
+  const { startServer, waitAnswer, answerFile } = await import("../skills/motion-video/scripts/relay");
+  const dir = mkdtempSync(path.join(os.tmpdir(), "relay-"));
+  const server = startServer(dir, 0);
+  try {
+    writeFileSync(path.join(dir, "vote.html"), "<p>hi</p>");
+    const base = `http://127.0.0.1:${server.port}`;
+    expect(await (await fetch(`${base}/vote.html`)).text()).toBe("<p>hi</p>");
+    expect((await fetch(`${base}/../package.json`)).status).toBe(404); // 上の階層は見せない
+    expect((await fetch(`${base}/.relay.json`)).status).toBe(404);
+    expect(await waitAnswer(path.join(dir, "vote.html"), 0.2, false)).toBeNull();
+    const res = await fetch(`${base}/__answer?page=vote.html`, { method: "POST", body: "## 案\n[選んだ] A a" });
+    expect(res.status).toBe(200);
+    expect(readFileSync(path.join(dir, answerFile("vote.html")), "utf8")).toBe("## 案\n[選んだ] A a");
+    expect(await waitAnswer(path.join(dir, "vote.html"), 1, false)).toBe("## 案\n[選んだ] A a");
+    await Bun.sleep(20);
+    expect(await waitAnswer(path.join(dir, "vote.html"), 0.2, true)).toBeNull(); // --fresh は前の回答を無視する
+    expect((await fetch(`${base}/__answer`, { method: "POST", body: "x" })).status).toBe(400);
+  } finally {
+    server.stop(true);
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 // ── 雛形と場面の並びの検査 ──
