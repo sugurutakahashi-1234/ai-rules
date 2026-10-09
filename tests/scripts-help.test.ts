@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -18,6 +18,7 @@ function bundledScripts(): string[] {
     if (!existsSync(dir)) continue;
     for (const name of readdirSync(dir)) {
       const file = path.join(dir, name);
+      if (!statSync(file).isFile()) continue; // assets/ の下のフォルダ（雛形など）は道具ではない
       if (readFileSync(file, "utf8").startsWith("#!")) files.push(file);
     }
   }

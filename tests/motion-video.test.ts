@@ -1,11 +1,14 @@
 import { expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { chord, synth, wav } from "../skills/motion-video/scripts/beat-music";
 import { closeness, draw, loadCatalog, loadHistory } from "../skills/motion-video/scripts/draw";
 import { build } from "../skills/motion-video/scripts/picker";
 import { analyze } from "../skills/motion-video/scripts/bgm-candidates";
+import { checkScenes } from "../skills/motion-video/scripts/check-scenes";
+import { replaceBlock, windowLines } from "../skills/motion-video/scripts/scene-windows";
+import { applyPatch, toSeconds } from "../skills/motion-video/scripts/sample";
 
 const catalog = loadCatalog();
 
@@ -187,4 +190,72 @@ test("選択票: text を持つ案は画像の代わりに文を出す（確認�
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+// ── 雛形と場面の並びの検査 ──
+const SCAFFOLD = path.join(import.meta.dir, "../skills/motion-video/assets/scaffold");
+
+/** 雛形を一時フォルダに写し、content.json を書き換えて検査する */
+function withScaffold(edit: (content: any) => void, fn: (dir: string) => void) {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "scaffold-"));
+  try {
+    cpSync(SCAFFOLD, dir, { recursive: true });
+    const file = path.join(dir, "content.json");
+    const content = JSON.parse(readFileSync(file, "utf8"));
+    edit(content);
+    writeFileSync(file, JSON.stringify(content, null, 2));
+    fn(dir);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+}
+
+test("雛形は場面の並びの検査を通り、index.html の窓も scenes と一致する", () => {
+  const result = checkScenes(SCAFFOLD);
+  expect(result.errors).toEqual([]);
+  expect(result.scenes.map((s) => s.id)).toEqual(["title", "items", "focus", "ending"]);
+  const index = readFileSync(path.join(SCAFFOLD, "index.html"), "utf8");
+  expect(replaceBlock(index, windowLines(SCAFFOLD))).toBe(index);
+});
+
+test("場面の並びの検査: 長さの合計が尺と合わないと止まる", () => {
+  withScaffold((c) => { c.scenes[3].length += 1; }, (dir) => {
+    expect(checkScenes(dir).errors.some((e) => e.includes("長さの合計"))).toBe(true);
+  });
+});
+
+test("場面の並びの検査: 前後の場面で部品の姿勢が違うと止まり、部品が swap で急に消えても止まる", () => {
+  withScaffold((c) => { c.scenes[2].pose.start.boxes.x = 200; c.scenes[2].pose.end.boxes.x = 200; }, (dir) => {
+    expect(checkScenes(dir).errors.some((e) => e.includes("姿勢が違う"))).toBe(true);
+  });
+  withScaffold((c) => { c.scenes[2].pose.start = {}; c.scenes[2].pose.end = {}; }, (dir) => {
+    expect(checkScenes(dir).errors.some((e) => e.includes("急に消える"))).toBe(true);
+  });
+});
+
+test("場面の並びの検査: 場面ごとの下限（見えている秒・拍の間）を割ると止まる", () => {
+  withScaffold((c) => { c.scenes[2].limits.gaps.picks.each = 2; c.scenes[1].limits.shown = 10; }, (dir) => {
+    const errors = checkScenes(dir).errors;
+    expect(errors.some((e) => e.includes("beats.picks の 1 番目の間"))).toBe(true);
+    expect(errors.some((e) => e.includes("場面 items が見えているのは"))).toBe(true);
+  });
+});
+
+test("場面の並びの検査: 場面の長さを変えると窓が食い違い、scene-windows で書き直すと通る", () => {
+  withScaffold((c) => { c.scenes[1].length += 2; c.scenes[3].length -= 2; }, (dir) => {
+    expect(checkScenes(dir).errors.some((e) => e.includes("窓"))).toBe(true);
+    const file = path.join(dir, "index.html");
+    writeFileSync(file, replaceBlock(readFileSync(file, "utf8"), windowLines(dir)));
+    expect(checkScenes(dir).errors).toEqual([]);
+  });
+});
+
+test("見本の差し替え: scenes は場面の id ごとに重ね、music は music.json に重ね、時刻は id@拍 で書ける", () => {
+  const content = { scenes: [{ id: "a", length: 4, beats: { x: 1, list: [1, 2] } }, { id: "b", length: 6, beats: {} }], title: { text: "t", sub: "s" } };
+  const { content: next, music, warnings } = applyPatch(content, { beatSeconds: 0.5, duration: 5 }, { scenes: { a: { beats: { list: [3] } }, zz: {} }, title: { text: "u" }, music: { duration: 6 } });
+  expect(next.scenes[0]).toEqual({ id: "a", length: 4, beats: { x: 1, list: [3] } });
+  expect(next.title).toEqual({ text: "u", sub: "s" });
+  expect(music).toEqual({ beatSeconds: 0.5, duration: 6 });
+  expect(warnings).toEqual(["scenes に zz が無い"]);
+  expect(toSeconds("b@2", { a: 0, b: 4 }, 0.5)).toBe(3);
+  expect(toSeconds("1.25", {}, 0.5)).toBe(1.25);
+  expect(() => toSeconds("c@1", { a: 0 }, 0.5)).toThrow();
 });
