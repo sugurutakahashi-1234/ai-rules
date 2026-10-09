@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { chord, synth, wav } from "../skills/motion-video/scripts/beat-music";
 import { closeness, draw, loadCatalog, loadHistory } from "../skills/motion-video/scripts/draw";
-import { build } from "../skills/motion-video/scripts/picker";
+import { build, check } from "../skills/motion-video/scripts/picker";
 import { analyze } from "../skills/motion-video/scripts/bgm-candidates";
 import { checkScenes } from "../skills/motion-video/scripts/check-scenes";
 import { replaceBlock, windowLines } from "../skills/motion-video/scripts/scene-windows";
@@ -155,8 +155,9 @@ test("選択票: mode view のページは残すボタンを出さず、回答�
         { title: "強み", mode: "keep", keep: 1, columns: [{ key: "S1", name: "案" }], rows: [{ key: "a", name: "a" }], images: "{file}-{row}.png" },
       ],
     }, dir);
-    expect(html.match(/<button class="keep">/g)).toHaveLength(1);
+    expect(html.match(/<button class="keep"/g)).toHaveLength(1);
     expect(html).toContain('"mode":"view"');
+    expect(html).toContain('placeholder="この直しへの一言（任意）"'); // 確認用のページは「案」ではなく「直し」
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -207,10 +208,124 @@ test("選択票: 案が文だけのページは縦に 1 列で並べ、文は行
     expect(html).toContain('<div class="grid list">');
     expect(html).toContain('<section class="page" data-p="1">'); // 画像の混ざるページは横並びのまま
     expect(html).toContain('<ol><li value="1">開く</li><li value="2">足す</li></ol><p class="gap"></p><p>補足</p>');
-    expect(html).toContain('<b>U1</b><span class="nm">案 1</span><span class="rec">おすすめ</span><button class="keep">残す</button>');
+    expect(html).toContain('<b>U1</b><span class="nm">案 1</span><span class="rec">おすすめ</span><button class="keep" data-label="これにする">これにする</button>');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("選択票: 選ぶボタンの言葉は場面で変わり、ページの button で上書きできる", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    const cols = [{ key: "A", name: "a", text: "x" }, { key: "B", name: "b", text: "y" }];
+    const rows = [{ key: "r", name: "" }];
+    expect(build({ title: "足切り", mode: "keep", keep: 3, columns: cols, rows }, dir)).toContain('data-label="候補に残す">候補に残す</button>');
+    expect(build({ title: "決める", mode: "keep", keep: 1, columns: cols, rows }, dir)).toContain('data-label="これにする">これにする</button>');
+    expect(build({ title: "件ごと", mode: "pick", columns: [{ key: "A", name: "a" }], rows, images: "{file}-{row}.png" }, dir)).toContain('<button class="pick" data-label="これにする">これにする</button>');
+    expect(build({ title: "件ごと", mode: "pick", columns: cols, rows }, dir)).toContain('<div class="opt" data-row="r" data-col="A"><div class="dot"></div><div class="name">A a</div>'); // 文の案はラジオ風で、名前がそのまま出る
+    expect(build({ title: "好きに", mode: "keep", keep: 1, button: "この文にする", columns: cols, rows }, dir)).toContain('data-label="この文にする">この文にする</button>');
+    expect(build({ title: "決める", mode: "keep", keep: 1, columns: cols, rows }, dir)).toContain('b.textContent = on ? "選択中" : b.dataset.label'); // 押した後は「選択中」
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("選択票: before / after は「直す前」「直した後」の 2 段になり、{+ +} と {- -} は ins / del になる", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    const html = build({
+      title: "確認", mode: "view", rows: [{ key: "r", name: "" }],
+      columns: [{ key: "L12", name: "導入", before: "正本{-を管理する-}", after: "正本{+。rulesync で取り込む+}" }, { key: "L40", name: "手順", after: "{+1. 書く+}\n{+2. 回す+}" }],
+    }, dir);
+    expect(html).toContain('<div class="ba"><div class="b"><span class="lbl">直す前</span><div class="t"><p>正本<del>を管理する</del></p></div></div><div class="a"><span class="lbl">直した後</span><div class="t"><p>正本<ins>。rulesync で取り込む</ins></p></div></div></div>');
+    expect(html).toContain('<div class="a"><span class="lbl">直した後</span><div class="t"><ol><li value="1"><ins>書く</ins></li><li value="2"><ins>回す</ins></li></ol></div></div>'); // before 無しは直した後だけ
+    expect(html).toContain('<span class="legend"><ins>足す</ins>／<del>消す</del></span>'); // 印があるページだけ凡例
+    expect(html).toContain('<section class="page narrow" data-p="0">'); // 文だけなので縦 1 列
+    expect(html).not.toContain("&lt;ins&gt;"); // 印は HTML エスケープのあとで置く
+    expect(build({ title: "印なし", mode: "view", rows: [{ key: "r", name: "" }], columns: [{ key: "A", name: "a", text: "x" }] }, dir)).not.toContain('class="legend"');
+    const triage = build({ title: "仕分け", mode: "view", labels: ["元の件", "扱い"], rows: [{ key: "r", name: "" }], columns: [{ key: "1", name: "a", before: "x", after: "落とす" }] }, dir);
+    expect(triage).toContain('<span class="lbl">元の件</span>');
+    expect(triage).toContain('<span class="lbl">扱い</span>');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("選択票: pick で件ごとに文の案を置けて、現状・理由・件ごとのおすすめが出る。文の案に「この方向でもっと」は付かない", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    const html = build({
+      title: "指摘", mode: "pick", recommend: { key: "A" },
+      columns: [{ key: "A", name: "案A" }, { key: "B", name: "案B" }, { key: "K", name: "このまま", text: "直さない" }],
+      rows: [
+        { key: "i1", name: "#12 導入", why: "誰が読むかが無い", now: "正本。", text: { A: "正本。{+取り込む。+}", B: "{-汎用-}正本。" } },
+        { key: "i2", name: "#40 手順", recommend: "B", text: { A: "a", B: "b" } },
+      ],
+    }, dir);
+    expect(html).toContain('<section class="page narrow" data-p="0">'); // 文の案は縦 1 列
+    expect(html).toContain('<h3>#12 導入</h3><p class="point">誰が読むかが無い</p><div class="now"><span class="lbl">現状</span><div class="t"><p>正本。</p></div></div><div class="opts">');
+    expect(html).toContain('<div class="opt isrec" data-row="i1" data-col="A"><div class="dot"></div><div class="name">A 案A<span class="rec">おすすめ</span></div><div class="obody"><div class="txt"><p>正本。<ins>取り込む。</ins></p></div></div></div>');
+    expect(html).toContain('<div class="opt" data-row="i1" data-col="K"><div class="dot"></div><div class="name">K このまま</div><div class="obody"><div class="txt"><p>直さない</p></div></div></div>'); // 列の text は全部の件に共通
+    expect(html).toContain('<div class="opt isrec" data-row="i2" data-col="B"><div class="dot"></div><div class="name">B 案B<span class="rec">おすすめ</span></div><div class="obody"><div class="txt"><p>b</p></div></div></div>'); // 件ごとのおすすめが優先
+    expect(html).toContain('<div class="opt" data-row="i2" data-col="A"><div class="dot"></div><div class="name">A 案A</div><div class="obody"><div class="txt"><p>a</p></div></div></div>');
+    expect(html).not.toContain('class="more"');
+    expect(html).toContain('placeholder="この件への一言・自分で直した文（任意）"');
+    expect(html).toContain('"rows":[["i1","#12 導入","A",0,null],["i2","#40 手順","B",0,null]]'); // 推す案を最初から選ぶのと、未選択のときの「おすすめで進める」に使う
+    expect(html).toContain("s.pages[i].pick[r] = rec");
+    expect(html).toContain('"未選択 → おすすめ "');
+    expect(check({ title: "x", mode: "pick", columns: [{ key: "A", name: "a" }], rows: [{ key: "r", name: "r" }] })).toContain("images が無いなら");
+    expect(check({ title: "x", mode: "pick", columns: [{ key: "A", name: "a" }], rows: [{ key: "r", name: "r", text: { A: "t" } }] })).toBeNull();
+    expect(check({ title: "x", mode: "pick", rows: [{ key: "r", name: "r" }] })).toContain("options / ask");
+    expect(check({ title: "x", mode: "pick", rows: [{ key: "r", name: "r", ask: "答えを" }] })).toBeNull();
+    // 件ごとの案（options）と、文で答える問い（ask）。列が無くても選択票になる
+    const own = build({
+      title: "仕分け", mode: "pick",
+      rows: [
+        { key: "t1", name: "#13 登録", why: "落とせるか", now: "元の文", recommend: "A", options: [{ key: "A", name: "落とす", pros: "1 件減る", cons: "手がかりが消える" }, { key: "B", name: "残す" }] },
+        { key: "q1", name: "#15 習慣", why: "意味", ask: "分からなければ「不明」" },
+      ],
+    }, dir);
+    expect(own).toContain('<div class="opt isrec" data-row="t1" data-col="A"><div class="dot"></div><div class="name">A 落とす<span class="rec">おすすめ</span></div><div class="md"><span class="m">1 件減る</span><span class="d">手がかりが消える</span></div></div>');
+    expect(own).toContain('<div class="opt" data-row="t1" data-col="B"><div class="dot"></div><div class="name">B 残す</div></div>');
+    expect(own).toContain('<section class="row ask" data-row="q1"><h3>#15 習慣</h3><p class="point">意味</p><textarea class="memo" data-memo="q1" placeholder="分からなければ「不明」"></textarea></section>');
+    expect(own).toContain('"mode":"pick"');
+    expect(own).toContain('"rows":[["t1","#13 登録","A",0,{"A":"落とす","B":"残す"}],["q1","#15 習慣",null,1,null]]');
+    const pic = build({ title: "絵", mode: "pick", columns: [{ key: "A", name: "a" }], rows: [{ key: "r", name: "r" }], images: "{file}-{row}.png" }, dir);
+    expect(pic).toContain('<button class="more">この方向でもっと</button>'); // 絵の案には今までどおり付く
+    expect(build({ title: "絵", mode: "pick", more: false, columns: [{ key: "A", name: "a" }], rows: [{ key: "r", name: "r" }], images: "{file}-{row}.png" }, dir)).not.toContain('class="more"');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("選択票: check は決めた扱いを 1 件 1 行で見せ、違う件だけ「戻す」。開けば確認済みになる", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    const html = build({
+      title: "仕分け",
+      pages: [
+        { title: "先に片付ける 2 件", mode: "check", tag: "落とす", tags: [{ name: "落とす", meaning: "期間切れ", tone: "red" }, { name: "片付いた", tone: "green" }], rows: [{ key: "n1", name: "#1 週次", sub: "9/1 から", why: "期間切れ" }, { key: "n2", name: "#2 上位目標", tag: "片付いた", why: "今日作り直した" }] },
+        { title: "選ぶ", mode: "keep", keep: 1, rows: [{ key: "r", name: "" }], columns: [{ key: "A", name: "a", text: "x" }] },
+      ],
+    }, dir);
+    expect(html).toContain('<div class="chk" data-row="n1"><span class="tagc red">落とす</span><div class="cbody"><b>#1 週次</b><span class="cwhy">期間切れ</span><small>9/1 から</small></div><button class="undo" data-label="戻す">戻す</button>');
+    expect(html).toContain('<span class="tagc green">片付いた</span><div class="cbody"><b>#2 上位目標</b><span class="cwhy">今日作り直した</span></div>'); // 行の tag がページの tag より優先。色は tags から
+    expect(html).toContain('<div class="tlegend"><span><span class="tagc red">落とす</span><span class="tm">期間切れ</span></span><span><span class="tagc green">片付いた</span></span></div>'); // 凡例はページの頭
+    expect(html).toContain('<section class="page narrow" data-p="0">'); // 幅は文のページと同じ
+    expect(html).toContain('"mode":"check"');
+    expect(html).toContain('C.pages[i].mode === "check"'); // 開けば確認済み（view と同じ扱い）
+    expect(html).toContain('" 件ともそのまま"');
+    expect(check({ title: "x", mode: "check" })).toContain("rows が要る");
+    expect(check({ title: "x", mode: "check", rows: [{ key: "a", name: "a" }] })).toBeNull();
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("design-compare の picker.ts は motion-video と同じ中身（スキルごとに持つが、育てるのは 1 本）", () => {
+  const a = readFileSync(path.join(import.meta.dir, "../skills/motion-video/scripts/picker.ts"), "utf8");
+  const b = readFileSync(path.join(import.meta.dir, "../skills/design-compare/scripts/picker.ts"), "utf8");
+  expect(b).toBe(a);
 });
 
 // ── 雛形と場面の並びの検査 ──
