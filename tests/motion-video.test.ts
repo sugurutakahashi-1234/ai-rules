@@ -186,7 +186,28 @@ test("選択票: text を持つ案は画像の代わりに文を出す（確認�
   const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
   try {
     const html = build({ title: "確認", mode: "view", columns: [{ key: "C1", name: "URL", text: "前: a.github.io\n後: https://a.github.io/" }], rows: [{ key: "a", name: "a" }], images: "{file}-{row}.png" }, dir);
-    expect(html).toContain('<div class="txt">前: a.github.io');
+    expect(html).toContain('<div class="txt"><p>前: a.github.io</p><p>後: https://a.github.io/</p></div>');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("選択票: 案が文だけのページは縦に 1 列で並べ、文は行ごと・番号つきの並び・段落の間に分ける", () => {
+  const dir = mkdtempSync(path.join(os.tmpdir(), "picker-"));
+  try {
+    writeFileSync(path.join(dir, "R1-a.png"), "");
+    const html = build({
+      title: "確認",
+      pages: [
+        { title: "進め方", mode: "keep", keep: 1, columns: [{ key: "U1", name: "案 1", text: "1. 開く\n2. 足す\n\n補足" }, { key: "U2", name: "案 2", text: "一行" }], rows: [{ key: "a", name: "a" }], recommend: { key: "U1" } },
+        { title: "直した点", mode: "view", columns: [{ key: "R1", name: "絵" }, { key: "C1", name: "文", text: "a" }], rows: [{ key: "a", name: "a" }], images: "{file}-{row}.png" },
+      ],
+    }, dir);
+    expect(html).toContain('<section class="page narrow" data-p="0">');
+    expect(html).toContain('<div class="grid list">');
+    expect(html).toContain('<section class="page" data-p="1">'); // 画像の混ざるページは横並びのまま
+    expect(html).toContain('<ol><li value="1">開く</li><li value="2">足す</li></ol><p class="gap"></p><p>補足</p>');
+    expect(html).toContain('<b>U1</b><span class="nm">案 1</span><span class="rec">おすすめ</span><button class="keep">残す</button>');
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
